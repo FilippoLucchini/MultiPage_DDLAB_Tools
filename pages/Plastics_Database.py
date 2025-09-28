@@ -20,7 +20,7 @@ else:
 st.header("Search Sample")
 
 # Define the fields available for searching
-SEARCH_FIELDS = ["Freezer Name", "Freezer Location", "Cassetto", "Project", "Type_Of_Sample", "Sample Batch", "Samples_ID_In_Batch"]
+SEARCH_FIELDS = ["Plastic Type", "Catalog Number", "Supplier", "Box Location"]
 
 selected_search_criteria = {}
 
