@@ -65,29 +65,41 @@ with st.form("search_form"):
         else:
             st.warning("Please select a value to search.")
 
-# --- Rest of the application (Add, Delete, Edit) remains as previously fixed ---
 
 # --- Add ---
 st.header("➕ Add New Plastic Item")
 with st.form("add_form"):
-# ... (rest of Add form code) ...
+    new_data = {col: st.text_input(col) for col in COLUMNS}
+    add_submit = st.form_submit_button("Add Plastic")
+    if add_submit:
+        df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
+        df.to_excel(file_path, index=False)
+        st.success("✅ Plastic item added!")
+        st.rerun()
 
 # --- Delete ---
 st.header("❌ Delete Plastic Item")
 with st.form("delete_form"):
-    del_field = st.selectbox("Choose field:", COLUMNS, key="del_field")
-    del_values = sorted(df[del_field].dropna().unique()) if not df.empty else []
-    
-    # Keep using dynamic key for Delete/Edit as it's sufficient there.
-    del_value = st.selectbox("Select value to delete:", del_values, key=f"del_value_{del_field}")
-# ... (rest of Delete form code) ...
+    del_field = st.selectbox("Choose field:", COLUMNS, key="del_field")
+    del_values = sorted(df[del_field].dropna().unique()) if not df.empty else []
+    del_value = st.selectbox("Select value to delete:", del_values, key="del_value")
+    del_submit = st.form_submit_button("Delete")
+    if del_submit:
+        df = df[df[del_field] != del_value]
+        df.to_excel(file_path, index=False)
+        st.success(f"✅ Deleted entries where {del_field} = {del_value}")
+        st.rerun()
 
 # --- Edit ---
 st.header("✏️ Edit Plastic Item")
 with st.form("edit_form"):
-    edit_field = st.selectbox("Choose field:", COLUMNS, key="edit_field")
-    edit_values = sorted(df[edit_field].dropna().unique()) if not df.empty else []
-    
-    # Keep using dynamic key for Delete/Edit as it's sufficient there.
-    edit_value = st.selectbox("Select value to edit:", edit_values, key=f"edit_value_{edit_field}")
-# ... (rest of Edit form code) ...
+    edit_field = st.selectbox("Choose field:", COLUMNS, key="edit_field")
+    edit_values = sorted(df[edit_field].dropna().unique()) if not df.empty else []
+    edit_value = st.selectbox("Select value to edit:", edit_values, key="edit_value")
+    new_values = {col: st.text_input(f"New {col}", value=df.loc[df[edit_field]==edit_value, col].iloc[0] if not df[df[edit_field]==edit_value].empty else "") for col in COLUMNS}
+    edit_submit = st.form_submit_button("Update")
+    if edit_submit:
+        df.loc[df[edit_field]==edit_value, COLUMNS] = list(new_values.values())
+        df.to_excel(file_path, index=False)
+        st.success("✅ Plastic item updated!")
+        st.rerun()  
