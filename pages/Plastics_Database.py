@@ -30,7 +30,7 @@ cols = st.columns(len(SEARCH_FIELDS))
 
 for i, field in enumerate(SEARCH_FIELDS):
     # Get unique values, ensuring no NaN values are passed to sort, and prepend a 'wildcard' option
-    unique_values = ['-- All Samples --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    unique_values = ['-- All Items --'] + sorted(df[field].dropna().astype(str).unique().tolist())
     
     with cols[i]:
         # Use a unique key for each selectbox
@@ -54,9 +54,9 @@ search_results = df[combined_search_filter]
 # Display the search results
 if st.button("Apply Search Filters"):
     if search_results.empty:
-        st.warning("⚠️ No samples matched the selected criteria.")
+        st.warning("⚠️ No items matched the selected criteria.")
     else:
-        st.success(f"🔍 Found **{len(search_results)}** matching sample(s):")
+        st.success(f"🔍 Found **{len(search_results)}** matching items(s):")
         st.dataframe(search_results)
 
 
