@@ -17,15 +17,48 @@ else:
     df.to_excel(file_path, index=False)
 
 # --- Search ---
-st.header("🔍 Search Plastics")
-with st.form("search_form"):
-    field = st.selectbox("Choose field to search by:", COLUMNS, key="search_field")
-    values = sorted(df[field].dropna().unique()) if not df.empty else []
-     # Key depends on selected field, so when you change field, this resets
-    value = st.selectbox("Start typing to search:", values, key=f"search_value_{field}")
-    submitted = st.form_submit_button("Search")
-    if submitted:
-        st.dataframe(df[df[field] == value])
+st.header("Search Sample")
+
+# Define the fields available for searching
+SEARCH_FIELDS = ["Freezer Name", "Freezer Location", "Cassetto", "Project", "Type_Of_Sample", "Sample Batch", "Samples_ID_In_Batch"]
+
+selected_search_criteria = {}
+
+st.write("### Choose a combination of criteria to filter by:")
+# Create columns to display the select boxes
+cols = st.columns(len(SEARCH_FIELDS))
+
+for i, field in enumerate(SEARCH_FIELDS):
+    # Get unique values, ensuring no NaN values are passed to sort, and prepend a 'wildcard' option
+    unique_values = ['-- All Samples --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    
+    with cols[i]:
+        # Use a unique key for each selectbox
+        selected_value = st.selectbox(
+            f"Select {field}:",
+            unique_values,
+            key=f"search_filter_by_{field}"
+        )
+        selected_search_criteria[field] = selected_value
+
+# Filter the DataFrame based on the selected criteria
+combined_search_filter = pd.Series([True] * len(df))
+
+for field, value in selected_search_criteria.items():
+    if value != '-- All Samples --':
+        # Apply the filter. Note: astype(str) is used for consistency with selectbox options.
+        combined_search_filter &= (df[field].astype(str) == value)
+
+search_results = df[combined_search_filter]
+
+# Display the search results
+if st.button("Apply Search Filters"):
+    if search_results.empty:
+        st.warning("⚠️ No samples matched the selected criteria.")
+    else:
+        st.success(f"🔍 Found **{len(search_results)}** matching sample(s):")
+        st.dataframe(search_results)
+
 
 # --- Add ---
 st.header("➕ Add New Plastic Item")
