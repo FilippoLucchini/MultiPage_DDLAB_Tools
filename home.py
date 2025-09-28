@@ -1,5 +1,3 @@
-Python 3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)] on win32
-Enter "help" below or click "Help" above for more information.
 >>> import streamlit as st
 ... 
 ... st.set_page_config(layout="centered")
@@ -10,4 +8,5 @@ Enter "help" below or click "Help" above for more information.
 ... 
 ... if st.button("🚀 Freezer Database"):
 ...     st.switch_page("pages/app.py")  # Jump to database page
+
 
