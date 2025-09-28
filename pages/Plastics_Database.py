@@ -41,7 +41,7 @@ with st.form("add_form"):
 # --- Delete ---
 st.header("❌ Delete Plastic Item")
 with st.form("delete_form"):
-    del_field = st.selectbox("Choose field:", COLUMNS, key="del_field")
+    del_value = st.selectbox("Select value to delete:", del_values, key="del_value")
     del_values = sorted(df[del_field].dropna().unique()) if not df.empty else []
     del_value = st.selectbox("Select value to delete:", del_values, key="del_value")
     del_submit = st.form_submit_button("Delete")
