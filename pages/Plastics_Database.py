@@ -21,7 +21,7 @@ def load_data(path):
         return pd.read_excel(path)
     else:
         # Create an empty DataFrame if the file doesn't exist
-        columns = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Quantità", "Box 96", "Box Location"]
+        COLUMNS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Quantità", "Box 96", "Box Location"]
         df_new = pd.DataFrame(columns=columns)
         df_new.to_excel(path, index=False)
         return df_new
@@ -86,7 +86,7 @@ if st.button("Apply Search Filters"):
 # --- Add ---
 st.header("➕ Add New Plastic Item")
 with st.form("add_form"):
-    new_data = {col: st.text_input(col) for col in columns}
+    new_data = {col: st.text_input(col) for col in COLUMNS}
     add_submit = st.form_submit_button("Add Plastic")
     if add_submit:
         df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
