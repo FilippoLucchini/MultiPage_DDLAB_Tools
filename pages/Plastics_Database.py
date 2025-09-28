@@ -86,7 +86,7 @@ if st.button("Apply Search Filters"):
 # --- Add ---
 st.header("➕ Add New Plastic Item")
 with st.form("add_form"):
-    new_data = {col: st.text_input(col) for col in COLUMNS}
+    new_data = {col: st.text_input(col) for col in columns}
     add_submit = st.form_submit_button("Add Plastic")
     if add_submit:
         df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
