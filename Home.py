@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(layout="centered")
 
-st.title("Welcome to DDLAB Tools 👋")
+st.title("Welcome to DDLAB Database Management Tools 👋")
 
 st.write("Choose a database to manage:")
 
@@ -17,3 +17,4 @@ if st.button("⚗️ Reagents Database"):
 # --- Plastics ---
 if st.button("🧪 Plastics Database"):
     st.switch_page("pages/Plastics_Database.py")
+
