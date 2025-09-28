@@ -32,7 +32,7 @@ cols = st.columns(len(SEARCH_FIELDS))
 
 for i, field in enumerate(SEARCH_FIELDS):
     # Get unique values, ensuring no NaN values are passed to sort, and prepend a 'wildcard' option
-    unique_values = ['-- All Items --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    unique_values = ['-- All Samples --'] + sorted(df[field].dropna().astype(str).unique().tolist())
     
     with cols[i]:
         # Use a unique key for each selectbox
