@@ -23,7 +23,6 @@ with st.form("search_form"):
     values = sorted(df[field].dropna().unique()) if not df.empty else []
      # Key depends on selected field, so when you change field, this resets
     value = st.selectbox("Start typing to search:", values, key=f"search_value_{field}")
-    
     submitted = st.form_submit_button("Search")
     if submitted:
         st.dataframe(df[df[field] == value])
