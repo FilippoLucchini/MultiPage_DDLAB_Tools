@@ -8,13 +8,33 @@ st.set_page_config(layout="wide")
 st.title("🧪 Plastics Database")
 
 file_path = "Plastics_Database.xlsx"
-COLUMNS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Quantità", "Box 96", "Box Location"]
 
-if os.path.exists(file_path):
-    df = pd.read_excel(file_path)
-else:
-    df = pd.DataFrame(columns=COLUMNS)
-    df.to_excel(file_path, index=False)
+# --- CACHE FUNCTION FOR DATA LOADING ---
+@st.cache_data(show_spinner="Loading database...")
+def load_data(path):
+    """
+    Loads the DataFrame from the Excel file. 
+    Streamlit uses the file's modification time (mtime) 
+    to automatically bust the cache when the file is saved.
+    """
+    if os.path.exists(path):
+        return pd.read_excel(path)
+    else:
+        # Create an empty DataFrame if the file doesn't exist
+        columns = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Quantità", "Box 96", "Box Location"]
+        df_new = pd.DataFrame(columns=columns)
+        df_new.to_excel(path, index=False)
+        return df_new
+
+# --- INITIAL DATA LOAD & SESSION STATE SETUP ---
+if 'data_df' not in st.session_state:
+    # Use the cached function to load the data.
+    # The file's modification time is used as an implicit hash parameter by Streamlit.
+    st.session_state['data_df'] = load_data(file_path)
+
+# Always reference the live DataFrame from session state
+df = st.session_state['data_df']
+
 
 # ======================================================================
 # --- MULTI-CRITERIA SEARCH (NEW SECTION) ---
