@@ -4,6 +4,9 @@ st.set_page_config(layout="wide")
 
 st.title("Welcome to DDLAB Database Management Tools 👋")
 
+# --- Databases Section Header ---
+st.header("Databases")
+
 st.write("Choose a database to manage:")
 
 # --- Inject custom CSS for bigger buttons ---
@@ -40,3 +43,4 @@ with col2:
 with col3:
     if st.button("🧪 Plastics Database"):
         st.switch_page("pages/Plastics_Database.py")
+
