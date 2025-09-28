@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import os
 
+# Set app layout on wide
+st.set_page_config(layout="wide")
+
 st.title("⚗️ Reagents Database")
 
 file_path = "Reagents_Database.xlsx"
