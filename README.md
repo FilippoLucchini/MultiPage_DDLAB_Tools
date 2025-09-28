@@ -1,6 +1,6 @@
 To Do
-- Define excel databases structures correctly
-- Define multiselect fields in excel databases
+- Define excel databases structures correctly (PLASTICS DONE)
+- Define multiselect fields in excel databases (PLASTICS DONE)
 - Rewrite the freezer code adapting it to plastics
 - Rewrite the freezer code adapting it to reagents
 - Fix the home screen to improve it
