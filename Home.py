@@ -35,7 +35,7 @@ st.markdown(
 
 # --- Create a Container for the Databases Group ---
 # This ensures that all components rendered within the 'with' block are visually grouped.
-with st.container():
+with st.container(border=true):
     
     # Start the custom HTML div (the box)
     st.markdown('<div class="database-group">', unsafe_allow_html=True)
@@ -67,3 +67,4 @@ with st.container():
 
     # Close the custom div tag
     st.markdown('</div>', unsafe_allow_html=True)
+
