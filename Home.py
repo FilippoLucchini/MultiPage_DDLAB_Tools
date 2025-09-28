@@ -4,9 +4,16 @@ st.set_page_config(layout="centered")
 
 st.title("Welcome to DDLAB Tools 👋")
 
-st.write("Click below to access the Freezer Database:")
+st.write("Choose a database to manage:")
 
-if st.button("❄️ Freezer Database"):
-    st.switch_page("pages/Freezer_Database.py")  # Jump to database page
+# --- Freezer ---
+if st.button("🧊 Freezer Database"):
+    st.switch_page("pages/Freezer_Database.py")
 
+# --- Reagents ---
+if st.button("⚗️ Reagents Database"):
+    st.switch_page("pages/Reagents_Database.py")
 
+# --- Plastics ---
+if st.button("🧪 Plastics Database"):
+    st.switch_page("pages/Plastics_Database.py")
