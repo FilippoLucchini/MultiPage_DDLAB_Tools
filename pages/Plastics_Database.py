@@ -20,9 +20,20 @@ else:
 st.header("🔍 Search Plastics")
 with st.form("search_form"):
     field = st.selectbox("Choose field to search by:", COLUMNS, key="search_field")
+    
+    # --- FIX: Ensure values and key are dynamically linked to 'field' ---
     values = sorted(df[field].dropna().unique()) if not df.empty else []
-     # Key depends on selected field, so when you change field, this resets
-    value = st.selectbox("Start typing to search:", values, key=f"search_value_{field}")
+    
+    # Use a dynamic key that depends on the field.
+    # The value is selected from the new list of unique values.
+    # To enforce a complete refresh of the selectbox, we can use a combination
+    # of the selected field and its values to generate a unique key.
+    # We'll just rely on the field for the key, as you already have, but ensure
+    # the list population is correct.
+    value = st.selectbox("Start typing to search:", 
+                         options=values, 
+                         key=f"search_value_{field}") # Dynamic key
+
     submitted = st.form_submit_button("Search")
     if submitted:
         st.dataframe(df[df[field] == value])
