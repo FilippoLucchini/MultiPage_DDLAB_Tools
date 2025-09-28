@@ -23,24 +23,31 @@ st.markdown(
         padding: 20px; /* Space inside the border */
         margin-top: 20px; /* Space above the box */
     }
+    /* 3. Ensure Streamlit elements inside the box are properly styled */
+    .database-group h2, .database-group p {
+        padding-left: 0;
+        padding-right: 0;
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
 # --- Create a Container for the Databases Group ---
-# We use an empty container, then replace its contents with the HTML/CSS wrapper.
-database_container = st.container()
-
-with database_container:
-    # Use st.markdown to wrap the content in a div with the custom class
+# This ensures that all components rendered within the 'with' block are visually grouped.
+with st.container():
+    
+    # Start the custom HTML div (the box)
     st.markdown('<div class="database-group">', unsafe_allow_html=True)
     
-    # --- Databases Section Content ---
+    # --- Databases Section Content (Header and Description) ---
+    # These must be inside the markdown div wrapper to be included in the border.
     st.header("Databases")
     st.write("Choose a database to manage:")
 
     # --- Use columns to place buttons side-by-side ---
+    # Streamlit components must be used directly, but they are placed inside 
+    # the container, which is itself wrapped in the custom div.
     col1, col2, col3 = st.columns(3)
 
     # --- Freezer ---
@@ -60,5 +67,3 @@ with database_container:
 
     # Close the custom div tag
     st.markdown('</div>', unsafe_allow_html=True)
-
-# The content below the container will appear outside the box.
