@@ -3,9 +3,9 @@ import pandas as pd
 
 # Define kits with multiple reactions
 REAGENT_KITS = {
-    "Kit A": {
-        "Reaction 1": {"Reagent 1": 10, "Reagent 2": 5},
-        "Reaction 2": {"Reagent 3": 2, "Reagent 4": 1}
+    "Twist EF 1.0 Library Prep": {
+        "Fragmentation, ER & AT": {"Water": 25, "10X Fragmentation Buffer": 5, "5X Fragmentation Enzyme": 10},
+        "Ligation": {"Water": 15, "DNA Ligation Buffer": 20, "DNA Ligation Mix": 10}
     },
     "Kit B": {
         "Prep": {"Reagent X": 8, "Reagent Y": 3},
