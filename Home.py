@@ -77,8 +77,8 @@ with db_col3:
 st.markdown("---")
 
 # --- Analysis Tools Section ---
-st.header("🧬 Analysis Tools")
-st.write("Choose an analysis tool to run:")
+st.header("🧬 Tools")
+st.write("Choose a tool to run:")
 
 tools_col1, tools_col2 = st.columns(2)
 
@@ -91,6 +91,7 @@ with tools_col2:
     if st.button("🥣 Master Mix Calculator", use_container_width=True):
         st.switch_page("pages/05_MasterMix Calculator.py")
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
+
 
 
 
