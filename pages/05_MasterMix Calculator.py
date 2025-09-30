@@ -52,7 +52,7 @@ else:
                 total = per_sample * num_samples * excess_factor
                 reaction_results.append({
                     "Reagent": reagent,
-                    "Amount": round(total, 2)
+                    "Amount (ul)": round(total, 2)
                 })
                 results.append({
                     "Reaction": reaction_name,
