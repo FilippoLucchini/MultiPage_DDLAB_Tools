@@ -38,7 +38,7 @@ else:
 
  # Calculate button
 if st.button("Calculate Reagents"):
-    st.subheader("Calculated Reagent Amounts")
+    st.subheader("Calculated Reagent Amounts for {num_samples}")
 
     results = []
     reaction_names = list(kit_data.keys())
