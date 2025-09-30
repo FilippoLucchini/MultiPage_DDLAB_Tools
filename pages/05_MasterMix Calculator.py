@@ -57,7 +57,7 @@ else:
                 results.append({
                     "Reaction": reaction_name,
                     "Reagent": reagent,
-                    "Amount": round(total, 2)
+                    "Amount (ul)": round(total, 2)
                 })
 
             with col:
