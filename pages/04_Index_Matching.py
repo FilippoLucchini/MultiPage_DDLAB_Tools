@@ -23,7 +23,7 @@ def char_matches(str1, str2):
 # -------------------------------
 # Filter matching pairs function
 # -------------------------------
-def filter_matching_pairs(df, thresholds):
+def filter_matching_pairs(df):
     result = []
 
     for lane in df["Lane"].unique():
@@ -39,18 +39,23 @@ def filter_matching_pairs(df, thresholds):
                 matches = char_matches(str1, str2)
                 min_length = min(len1, len2)
 
-                # Threshold logic (configurable)
-                match_threshold = thresholds.get(min_length, thresholds["default"])
+                # Soglie fisse
+                if min_length == 12:
+                    match_threshold = 11
+                elif min_length == 10:
+                    match_threshold = 9
+                elif min_length == 8:
+                    match_threshold = 7
+                else:
+                    match_threshold = 5
 
                 if matches >= match_threshold:
                     result.append({
                         "lane": lane,
                         "GCF_ID_string1": lane_data.loc[i, "CGF_ID"],
                         "GCF_ID_string2": lane_data.loc[j, "CGF_ID"],
-                        "pool_catt_string1": lane_data.loc[i, "Pool_Cattura"],
-                        "pool_catt_string2": lane_data.loc[j, "Pool_Cattura"],
-                        "CGF_Pool_ID_string1": lane_data.loc[i, "CGF_Pool_ID"],
-                        "CGF_Pool_ID_string2": lane_data.loc[j, "CGF_Pool_ID"],
+                        "Sample_ID_1": lane_data.loc[i, "Sample_ID"],
+                        "Sample_ID_2": lane_data.loc[j, "Sample_ID"],
                         "index7_string1": str1,
                         "index7_string2": str2,
                         "length1": len1,
@@ -64,16 +69,6 @@ def filter_matching_pairs(df, thresholds):
 # Streamlit app
 # -------------------------------
 st.title("🔍 Index Matching Pairs Finder")
-
-# Sidebar
-st.sidebar.header("⚙️ Index Accepted Mismatch Settings")
-
-thresholds = {
-    12: st.sidebar.number_input("Threshold for length 12", 1, 12, 11),
-    10: st.sidebar.number_input("Threshold for length 10", 1, 10, 9),
-    8: st.sidebar.number_input("Threshold for length 8", 1, 8, 7),
-    "default": st.sidebar.number_input("Threshold for other lengths", 1, 12, 5)
-}
 
 uploaded_file = st.file_uploader("📂 Upload your Excel file", type=["xlsx"])
 
@@ -99,7 +94,7 @@ if uploaded_file:
     # Matching Pairs
     # -------------------------------
     st.subheader("🔗 Matching Pairs")
-    matching_pairs_df = filter_matching_pairs(df, thresholds)
+    matching_pairs_df = filter_matching_pairs(df)
 
     if not matching_pairs_df.empty:
         st.dataframe(matching_pairs_df)
@@ -152,17 +147,37 @@ if uploaded_file:
         st.warning("Sample_IDs with spaces or hyphens (full rows):")
         st.dataframe(sample_format_issues)
 
-    # Option to download all errors
-    error_rows = pd.concat([duplicated_cgf, duplicated_sample, cgf_format_issues, sample_format_issues]).drop_duplicates()
-    if not error_rows.empty:
-        csv_errors = error_rows.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="⬇️ Download Error Rows (CSV)",
-            data=csv_errors,
-            file_name="error_rows.csv",
-            mime="text/csv"
-        )
+    # -------------------------------
+    # Lane-specific demultiplexing report
+    # -------------------------------
+    st.subheader("🧾 Demultiplexing Recommendations by Lane")
+
+    for lane in df["Lane"].unique():
+        lane_data = df[df["Lane"] == lane].reset_index(drop=True)
+
+        status = "✅ Demultiplexing non stringente"
+        note = []
+
+        for i in range(len(lane_data)):
+            for j in range(i + 1, len(lane_data)):
+                str1 = str(lane_data.loc[i, "index7"])
+                str2 = str(lane_data.loc[j, "index7"])
+                matches = char_matches(str1, str2)
+                mismatches = abs(len(str1) - matches)  # differenze sui caratteri
+
+                if str1 == str2:
+                    status = "❌ Errore: stessi indici presenti"
+                    note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno lo stesso indice.")
+                elif mismatches == 1 and status != "❌ Errore: stessi indici presenti":
+                    status = "⚠️ Demultiplexing stringente"
+                    note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno 1 mismatch.")
+
+        st.markdown(f"**Lane {lane}:** {status}")
+        if note:
+            for n in note:
+                st.markdown(f"- {n}")
 
 else:
     st.info("👆 Upload an Excel file to start the analysis.")
+
 
