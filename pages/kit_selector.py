@@ -19,4 +19,4 @@ for kit_name in REAGENT_KITS.keys():
     if st.button(kit_name):
         st.session_state.selected_kit = kit_name
         st.session_state.kit_data = REAGENT_KITS[kit_name]
-        st.switch_page("pages/subpages/kit_calculator.py")  # Requires Streamlit >= 1.12
+        st.switch_page("pages/subpage/kit_calculator.py")  # Requires Streamlit >= 1.12
