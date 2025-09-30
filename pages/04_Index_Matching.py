@@ -121,9 +121,9 @@ if uploaded_file:
 
     st.markdown(f"""
     **Summary:**
-    - 🧬 Duplicated CGF_ID: **{len(duplicated_cgf)}**
-    - 🧪 Duplicated Sample_ID: **{len(duplicated_sample)}**
-    - ⚠️ Totale celle con spazi o trattini: **{total_format_issues}**
+    - 🧬 ID CGF Duplicati: **{len(duplicated_cgf)}**
+    - 🧪 Sample ID Duplicati: **{len(duplicated_sample)}**
+    - ⚠️ Celle con spazi o trattini: **{total_format_issues}**
     """)
 
     if not duplicated_cgf.empty:
