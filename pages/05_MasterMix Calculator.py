@@ -36,12 +36,6 @@ def select_kit(kit_name):
     st.session_state.samples = 1
     st.session_state.excess_percent = 10
 
-def calculate_reagents(samples, excess_percent):
-    """Performs the calculation and sets state to show results."""
-    st.session_state.samples = samples
-    st.session_state.excess_percent = excess_percent
-    st.session_state.show_results = True
-
 def reset_selection():
     """Resets the state back to kit selection."""
     st.session_state.kit_selected = None
@@ -81,30 +75,36 @@ def display_input_and_results():
     with st.form("reagent_form"):
         st.subheader("Input Parameters")
         
-        # Input for Number of Samples
-        samples_input = st.number_input(
-            "Number of Samples (N)",
-            min_value=1,
-            value=st.session_state.samples,
-            step=1,
-            format="%d",
-            key="samples_input",
-            help="The total number of biological samples to be processed."
-        )
+        # Use columns to lay out inputs side-by-side for better organization
+        col_samples, col_excess = st.columns(2)
+        
+        with col_samples:
+            # Input for Number of Samples
+            samples_input = st.number_input(
+                "Number of Samples (N)",
+                min_value=1,
+                value=st.session_state.samples,
+                step=1,
+                format="%d",
+                key="samples_input",
+                help="The total number of biological samples to be processed."
+            )
 
-        # Input for Excess Percentage
-        excess_input = st.number_input(
-            "Excess Volume (%)",
-            min_value=0.0,
-            max_value=100.0,
-            value=st.session_state.excess_percent,
-            step=0.5,
-            key="excess_input",
-            help="Percentage of extra reagent volume to include to account for pipetting errors, dead volume, etc."
-        )
+        with col_excess:
+            # Input for Excess Percentage
+            excess_input = st.number_input(
+                "Excess Volume (%)",
+                min_value=0.0,
+                max_value=100.0,
+                value=st.session_state.excess_percent,
+                step=0.5,
+                key="excess_input",
+                help="Percentage of extra reagent volume to include to account for pipetting errors, dead volume, etc."
+            )
 
-        # Calculation button
-        submitted = st.form_submit_button("Calculate Reagents", type="primary")
+        # Calculation button - Placed prominently at the bottom of the input group
+        st.markdown("---") # Visual separator before the button
+        submitted = st.form_submit_button("Calculate Reagents", type="primary", use_container_width=True)
 
     if submitted or st.session_state.get('show_results', False):
         st.subheader("3. Calculated Reagent Requirements")
@@ -127,9 +127,9 @@ def display_input_and_results():
             data.append({
                 "Reagent Name": reagent,
                 "Volume per Sample (µL)": vol_per_sample,
-                f"Total Volume Required (µL) (N={samples_input})": total_vol_raw,
-                f"Total Volume Required (µL) (Excess={excess_input}%)": total_vol_excess,
-                "Total Volume Required (mL)": total_vol_excess / 1000
+                f"Total Volume Required (µL) (N={samples_input})": round(total_vol_raw, 2),
+                f"Total Volume Required (µL) (Excess={excess_input}%)": round(total_vol_excess, 2),
+                "Total Volume Required (mL)": round(total_vol_excess / 1000, 2)
             })
 
         df = pd.DataFrame(data)
@@ -147,7 +147,7 @@ def display_input_and_results():
             hide_index=False
         )
         
-        st.caption("All calculations include the specified excess volume. Volumes are rounded to two decimal places.")
+        st.caption("All calculations include the specified excess volume. All volumes are rounded to two decimal places for readability.")
         
     st.divider()
     # Button to go back to kit selection
@@ -160,6 +160,12 @@ def display_input_and_results():
 # --- Main Logic Flow ---
 st.title("🔬 Reagent Volume Calculator")
 st.markdown("Easily calculate the required volumes for molecular biology kits based on sample number and excess percentage.")
+
+if st.session_state.kit_selected is None:
+    display_kit_selection()
+else:
+    display_input_and_results()
+
 
 if st.session_state.kit_selected is None:
     display_kit_selection()
