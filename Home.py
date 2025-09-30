@@ -28,15 +28,15 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.button("🧊 Freezer Database"):
-        st.switch_page("pages/Databases/Freezer_Database.py")
+        st.switch_page("pages/Freezer_Database.py")
 
 with col2:
     if st.button("⚗️ Reagents Database"):
-        st.switch_page("pages/Databases/Reagents_Database.py")
+        st.switch_page("pages/Reagents_Database.py")
 
 with col3:
     if st.button("🧪 Plastics Database"):
-        st.switch_page("pages/Databases/Plastics_Database.py")
+        st.switch_page("pages/Plastics_Database.py")
 
 # --- New Section Below ---
 st.header("Analysis Tools")
@@ -46,10 +46,11 @@ col4, col5 = st.columns(2)
 
 with col4:
     if st.button("🔎 Index7 Matching Tool"):
-        st.switch_page("pages/Tools/Index7_Matching.py")
+        st.switch_page("pages/Index7_Matching.py")
 
 with col5:
     if st.button("📊 Another Tool (future)"):
-        st.switch_page("pages/Tools/Other_Tool.py")
+        st.switch_page("pages/Other_Tool.py")
+
 
 
