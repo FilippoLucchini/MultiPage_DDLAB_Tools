@@ -92,6 +92,7 @@ with tools_col2:
         st.switch_page("pages/05_MasterMix Calculator.py")
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
+st.markdown("---")  # horizontal divider
 
 
 
