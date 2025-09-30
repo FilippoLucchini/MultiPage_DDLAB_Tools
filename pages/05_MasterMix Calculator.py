@@ -1,12 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-#Definte kits categories
-KIT_CATEGORIES = {
-    "WES": ["Twist EF 1.0 Library Prep", "Kit B"],
-    "RNA": ["RNA Kit A", "RNA Kit B"],
-    "Genotyping": ["Genotyping Kit X", "Genotyping Kit Y"]
-}
 # Define kits with multiple reactions
 REAGENT_KITS = {
     "Twist EF 1.0 Library Prep": {
@@ -21,28 +15,9 @@ REAGENT_KITS = {
 
 # Handle back button early
 if st.session_state.get("back_to_selection"):
-    st.session_state.selected_category = None
     st.session_state.selected_kit = None
     st.session_state.kit_data = None
     st.session_state.back_to_selection = False
-
-# Category selection
-if "selected_category" not in st.session_state or st.session_state.selected_category is None:
-    st.title("Select a Kit Category")
-    for category in KIT_CATEGORIES.keys():
-        if st.button(category):
-            st.session_state.selected_category = category
-
-# Kit selection within category
-elif "selected_kit" not in st.session_state or st.session_state.selected_kit is None:
-    st.title(f"Select a Kit from {st.session_state.selected_category}")
-    for kit_name in KIT_CATEGORIES[st.session_state.selected_category]:
-        if st.button(kit_name):
-            st.session_state.selected_kit = kit_name
-            st.session_state.kit_data = REAGENT_KITS[kit_name]
-    if st.button("🔙 Back to Categories"):
-        st.session_state.selected_category = None
-        st.rerun()
 
 # Kit selection view
 if "selected_kit" not in st.session_state or st.session_state.selected_kit is None:
@@ -51,11 +26,12 @@ if "selected_kit" not in st.session_state or st.session_state.selected_kit is No
         if st.button(kit_name):
             st.session_state.selected_kit = kit_name
             st.session_state.kit_data = REAGENT_KITS[kit_name]
+
 else:
     kit_name = st.session_state.selected_kit
     kit_data = st.session_state.kit_data
-    st.title(f"Reagent Calculator for {kit_name}")
 
+    st.title(f"Reagent Calculator for {kit_name}")
 
     # Ask once for samples and excess
     num_samples = st.number_input("Number of samples", min_value=1, step=1)
@@ -66,6 +42,7 @@ else:
     if st.button("Calculate Reagents"):
         st.subheader("Calculated Reagent Amounts")
         results = []
+
         reaction_names = list(kit_data.keys())
         columns = st.columns(len(reaction_names))
 
@@ -77,12 +54,12 @@ else:
                 total = per_sample * num_samples * excess_factor
                 reaction_results.append({
                     "Reagent": reagent,
-                    "Amount (ul)": format(total, ".2f")
+                    "Amount (ul)": round(total, 2)
                 })
                 results.append({
                     "Reaction": reaction_name,
                     "Reagent": reagent,
-                    "Amount (ul)": format(total, ".2f")
+                    "Amount (ul)": round(total, 2)
                 })
 
             with col:
@@ -92,12 +69,14 @@ else:
         # Export CSV
         df = pd.DataFrame(results)
         csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download All Reagents as CSV", data=csv, file_name=f"{kit_name}_reagents.csv", mime="text/csv")
+        st.download_button(
+            "Download All Reagents as CSV",
+            data=csv,
+            file_name=f"{kit_name}_reagents.csv",
+            mime="text/csv"
+        )
 
     # Back button
     if st.button("🔙 Back to Kit Selection"):
         st.session_state.back_to_selection = True
         st.rerun()
-
-        st.session_state.kit_data = None
-
