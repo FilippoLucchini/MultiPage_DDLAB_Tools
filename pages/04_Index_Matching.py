@@ -65,9 +65,9 @@ def filter_matching_pairs(df):
 # -------------------------------
 # Streamlit app
 # -------------------------------
-st.title("🔍 Index Matching Pairs Finder")
+st.title("🔍 Index Matching Tool")
 
-uploaded_file = st.file_uploader("📂 Upload your Excel file", type=["xlsx"])
+uploaded_file = st.file_uploader("📂 Upload Sequencing Sample List", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
