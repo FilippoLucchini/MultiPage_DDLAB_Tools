@@ -101,33 +101,34 @@ if uploaded_file:
     else:
         st.info("No matching pairs found with the given thresholds.")
 
-    # -------------------------------
-    # Data Quality Checks
-    # -------------------------------
-    st.subheader("Data Quality Checks")
+   # -------------------------------
+# Data Quality Checks
+# -------------------------------
+st.subheader("Data Quality Checks")
 
-    # Check for duplicate CGF_ID
-    duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
-    if not duplicated_cgf.empty:
-        st.warning("Duplicated CGF_IDs found:")
-        st.dataframe(duplicated_cgf[["CGF_ID"]].drop_duplicates())
+# Aggiungiamo colonna "Excel_Row" per sapere in che riga era il record
+df["Excel_Row"] = df.index + 2   # +2 perché in Excel l'intestazione è riga 1
 
-    # Check for duplicate Sample_ID
-    duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
-    if not duplicated_sample.empty:
-        st.warning("Duplicated Sample_IDs found:")
-        st.dataframe(duplicated_sample[["Sample_ID"]].drop_duplicates())
+# Check for duplicate CGF_ID
+duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
+if not duplicated_cgf.empty:
+    st.warning("Duplicated CGF_IDs found:")
+    st.dataframe(duplicated_cgf[["Excel_Row", "CGF_ID"]].drop_duplicates())
 
-    # Check for spaces or hyphens in CGF_ID
-    cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
-    if not cgf_format_issues.empty:
-        st.warning("CGF_IDs with spaces or hyphens:")
-        st.dataframe(cgf_format_issues[["CGF_ID"]].drop_duplicates())
+# Check for duplicate Sample_ID
+duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
+if not duplicated_sample.empty:
+    st.warning("Duplicated Sample_IDs found:")
+    st.dataframe(duplicated_sample[["Excel_Row", "Sample_ID"]].drop_duplicates())
 
-    # Check for spaces or hyphens in Sample_ID
-    sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
-    if not sample_format_issues.empty:
-        st.warning("Sample_IDs with spaces or hyphens:")
-        st.dataframe(sample_format_issues[["Sample_ID"]].drop_duplicates())
+# Check for spaces or hyphens in CGF_ID
+cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
+if not cgf_format_issues.empty:
+    st.warning("CGF_IDs with spaces or hyphens:")
+    st.dataframe(cgf_format_issues[["Excel_Row", "CGF_ID"]].drop_duplicates())
 
-
+# Check for spaces or hyphens in Sample_ID
+sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
+if not sample_format_issues.empty:
+    st.warning("Sample_IDs with spaces or hyphens:")
+    st.dataframe(sample_format_issues[["Excel_Row", "Sample_ID"]].drop_duplicates())
