@@ -5,7 +5,7 @@ st.set_page_config(page_title="DDLAB Tools", page_icon="🧬", layout="wide")
 # --- Hero Section ---
 col_logo, col_title = st.columns([1, 5])
 with col_logo:
-    st.image("Sticker_DDLAB-removebg-preview.png", width=120)  # replace with your logo path
+    st.image("Sticker_DDLAB-removebg-preview.png", width=240)  # replace with your logo path
 with col_title:
     st.markdown(
         """
@@ -87,6 +87,7 @@ with tools_col2:
     if st.button("📊 Another Tool (future)", use_container_width=True):
         st.switch_page("pages/Other_Tool.py")
     st.markdown('<div class="card"><h3>📊 Future Tool</h3><p>Reserved for upcoming analysis features.</p></div>', unsafe_allow_html=True)
+
 
 
 
