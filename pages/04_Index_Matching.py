@@ -92,8 +92,8 @@ if uploaded_file:
     else:
         st.info("No matching pairs found with the given thresholds.")
 
-# -------------------------------
-    # Check for duplicates and formatting issues
+   # -------------------------------
+    # Data Quality Checks
     # -------------------------------
     st.subheader("Data Quality Checks")
 
@@ -110,9 +110,6 @@ if uploaded_file:
         st.dataframe(duplicated_sample[["Sample_ID"]].drop_duplicates())
 
     # Check for spaces or hyphens
-    def has_space_or_hyphen(s):
-        return pd.notna(s) and (" " in s or "-" in s)
-
     cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
     sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
 
