@@ -61,7 +61,7 @@ def filter_matching_pairs(df):
 # -------------------------------
 # Streamlit app
 # -------------------------------
-st.title("Index7 Matching Pairs Finder")
+st.title("Index Matching Pairs Finder")
 
 uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 
