@@ -1,7 +1,5 @@
 import streamlit as st
 
-import streamlit as st
-
 st.set_page_config(
     page_title="DDLAB Tools",
     page_icon="🧬",   # emoji or path to .png/.ico
@@ -59,6 +57,7 @@ with col4:
 with col5:
     if st.button("📊 Another Tool (future)"):
         st.switch_page("pages/Other_Tool.py")
+
 
 
 
