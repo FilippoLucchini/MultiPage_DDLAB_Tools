@@ -31,16 +31,18 @@ else:
     kit_data = st.session_state.kit_data
     st.title(f"Reagent Calculator for {kit_name}")
 
+    # Ask once for samples and excess
+    num_samples = st.number_input("Number of samples", min_value=1, step=1)
+    excess_pct = st.slider("Excess (%)", min_value=0, max_value=100, value=10)
+    excess_factor = 1 + (excess_pct / 100)
+
     results = []
 
+    st.subheader("Calculated Reagent Amounts")
     for reaction_name, reagents in kit_data.items():
-        st.subheader(f"{reaction_name}")
-        samples = st.number_input(f"Samples for {reaction_name}", min_value=1, step=1, key=f"samples_{reaction_name}")
-        excess = st.slider(f"Excess (%) for {reaction_name}", min_value=0, max_value=100, value=10, key=f"excess_{reaction_name}")
-        factor = 1 + (excess / 100)
-
+        st.markdown(f"**{reaction_name}**")
         for reagent, per_sample in reagents.items():
-            total = per_sample * samples * factor
+            total = per_sample * num_samples * excess_factor
             st.write(f"{reagent}: {total:.2f} units")
             results.append({
                 "Reaction": reaction_name,
