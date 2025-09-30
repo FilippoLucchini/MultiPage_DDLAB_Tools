@@ -23,7 +23,7 @@ def char_matches(str1, str2):
 # -------------------------------
 # Filter matching pairs function
 # -------------------------------
-def filter_matching_pairs(df):
+def filter_matching_pairs(df, thresholds):
     result = []
 
     for lane in df["Lane"].unique():
@@ -39,15 +39,8 @@ def filter_matching_pairs(df):
                 matches = char_matches(str1, str2)
                 min_length = min(len1, len2)
 
-                # Threshold logic
-                if min_length == 12:
-                    match_threshold = 11
-                elif min_length == 10:
-                    match_threshold = 9
-                elif min_length == 8:
-                    match_threshold = 7
-                else:
-                    match_threshold = 5
+                # Threshold logic (configurable)
+                match_threshold = thresholds.get(min_length, thresholds["default"])
 
                 if matches >= match_threshold:
                     result.append({
@@ -70,71 +63,106 @@ def filter_matching_pairs(df):
 # -------------------------------
 # Streamlit app
 # -------------------------------
-st.title("Index Matching Pairs Finder")
+st.title("🔍 Index Matching Pairs Finder")
 
-uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
+# Sidebar
+st.sidebar.header("⚙️ Settings")
+
+thresholds = {
+    12: st.sidebar.number_input("Threshold for length 12", 1, 12, 11),
+    10: st.sidebar.number_input("Threshold for length 10", 1, 10, 9),
+    8: st.sidebar.number_input("Threshold for length 8", 1, 8, 7),
+    "default": st.sidebar.number_input("Threshold for other lengths", 1, 12, 5)
+}
+
+uploaded_file = st.file_uploader("📂 Upload your Excel file", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
-    # Aggiungiamo colonna con riga reale in Excel (considerando intestazione)
-    df["Excel_Row"] = df.index + 2  
+    # Check required columns
+    required_columns = ["Lane", "index7", "CGF_ID", "Sample_ID", "Pool_Cattura", "CGF_Pool_ID"]
+    missing_cols = [col for col in required_columns if col not in df.columns]
+    if missing_cols:
+        st.error(f"❌ Missing required columns in file: {', '.join(missing_cols)}")
+        st.stop()
 
-    # Add string length column
+    # Add Excel row info
+    df["Excel_Row"] = df.index + 2  
     df["string_length"] = df["index7"].astype(str).str.len()
 
     # Input preview
-    st.subheader("Input Data Preview")
+    st.subheader("📊 Input Data Preview")
     st.dataframe(df.head())
 
     # -------------------------------
     # Matching Pairs
     # -------------------------------
-    st.subheader("Matching Pairs")
-    matching_pairs_df = filter_matching_pairs(df)
+    st.subheader("🔗 Matching Pairs")
+    matching_pairs_df = filter_matching_pairs(df, thresholds)
 
     if not matching_pairs_df.empty:
         st.dataframe(matching_pairs_df)
 
-        # Option to download
+        # Download results
         csv = matching_pairs_df.to_csv(index=False).encode("utf-8")
         st.download_button(
-            label="Download Results as CSV",
+            label="⬇️ Download Matching Pairs (CSV)",
             data=csv,
             file_name="matching_pairs.csv",
             mime="text/csv"
         )
     else:
-        st.info("No matching pairs found with the given thresholds.")
+        st.info("✅ No matching pairs found with the given thresholds.")
 
     # -------------------------------
     # Data Quality Checks
     # -------------------------------
-    st.subheader("Data Quality Checks")
+    st.subheader("🧪 Data Quality Checks")
 
-    # Check for duplicate CGF_ID
+    # Checks
     duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
+    duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
+    cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
+    sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
+
+    # Report summary
+    st.markdown(f"""
+    **Summary:**
+    - 🧬 Duplicated CGF_ID: **{len(duplicated_cgf)}**
+    - 🧪 Duplicated Sample_ID: **{len(duplicated_sample)}**
+    - ⚠️ CGF_IDs with spaces/hyphens: **{len(cgf_format_issues)}**
+    - ⚠️ Sample_IDs with spaces/hyphens: **{len(sample_format_issues)}**
+    """)
+
+    # Show tables if issues
     if not duplicated_cgf.empty:
-        st.warning("Duplicated CGF_IDs found (showing full rows):")
+        st.warning("Duplicated CGF_IDs (full rows):")
         st.dataframe(duplicated_cgf)
 
-    # Check for duplicate Sample_ID
-    duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
     if not duplicated_sample.empty:
-        st.warning("Duplicated Sample_IDs found (showing full rows):")
+        st.warning("Duplicated Sample_IDs (full rows):")
         st.dataframe(duplicated_sample)
 
-    # Check for spaces or hyphens in CGF_ID
-    cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
     if not cgf_format_issues.empty:
-        st.warning("CGF_IDs with spaces or hyphens (showing full rows):")
+        st.warning("CGF_IDs with spaces or hyphens (full rows):")
         st.dataframe(cgf_format_issues)
 
-    # Check for spaces or hyphens in Sample_ID
-    sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
     if not sample_format_issues.empty:
-        st.warning("Sample_IDs with spaces or hyphens (showing full rows):")
+        st.warning("Sample_IDs with spaces or hyphens (full rows):")
         st.dataframe(sample_format_issues)
+
+    # Option to download all errors
+    error_rows = pd.concat([duplicated_cgf, duplicated_sample, cgf_format_issues, sample_format_issues]).drop_duplicates()
+    if not error_rows.empty:
+        csv_errors = error_rows.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="⬇️ Download Error Rows (CSV)",
+            data=csv_errors,
+            file_name="error_rows.csv",
+            mime="text/csv"
+        )
 
 else:
     st.info("👆 Upload an Excel file to start the analysis.")
+
