@@ -21,10 +21,10 @@ def load_data(path):
         return df_new
 
 # --- INITIAL DATA LOAD & SESSION STATE SETUP ---
-if 'data_df' not in st.session_state:
-    st.session_state['data_df'] = load_data(file_path)
+if 'reagents_df' not in st.session_state:
+st.session_state['reagents_df'] = load_data(file_path)
 
-df = st.session_state['data_df']
+df = st.session_state['reagents_df']
 
 st.title("DDLAB Reagents Database Management Tool")
 
