@@ -1,8 +1,16 @@
 import streamlit as st
 
-st.set_page_config(layout="wide")
+import streamlit as st
 
-st.title("Welcome to DDLAB Database Management Tools 👋")
+st.set_page_config(
+    page_title="DDLAB Tools",
+    page_icon="🧬",   # emoji or path to .png/.ico
+    layout="wide"     # "centered" or "wide"
+)
+
+st.title("Welcome to DDLAB Tools 👋")
+st.markdown("Your hub for managing lab databases and analysis tools.")
+
 
 # --- Databases Section Header ---
 st.header("Databases")
@@ -51,6 +59,7 @@ with col4:
 with col5:
     if st.button("📊 Another Tool (future)"):
         st.switch_page("pages/Other_Tool.py")
+
 
 
 
