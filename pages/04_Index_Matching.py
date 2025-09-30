@@ -145,56 +145,54 @@ if uploaded_file:
         format_issues_df = df[df.apply(lambda row: any(has_space_or_hyphen(row[col]) for col in df.columns), axis=1)]
         st.dataframe(format_issues_df)
 
- # -------------------------------
+# -------------------------------
 # Lane-specific demultiplexing report
 # -------------------------------
 st.subheader("🧾 Demultiplexing Recommendations by Lane")
 
-if "Lane" in df.columns:
-    for lane in df["Lane"].unique():
-        lane_data = df[df["Lane"] == lane].reset_index(drop=True)
+for lane in df["Lane"].unique():
+    lane_data = df[df["Lane"] == lane].reset_index(drop=True)
 
-        # Statistiche lunghezze indici considerando index7 e index5
-        index7_lengths = lane_data["index7"].astype(str).str.len()
-        index5_lengths = lane_data["index5"].astype(str).str.len() if "index5" in lane_data.columns else pd.Series(dtype=int)
+    # Statistiche lunghezze indici considerando index7 e index5
+    index7_lengths = lane_data["index7"].astype(str).str.len()
+    index5_lengths = lane_data["index5"].astype(str).str.len() if "index5" in lane_data.columns else pd.Series(dtype=int)
 
-        # Creazione dizionario lunghezza -> 1xL o 2xL
-        length_summary_dict = {}
-        all_lengths = sorted(set(index7_lengths.tolist() + index5_lengths.tolist()))
-        for length in all_lengths:
-            in_index7 = sum(index7_lengths == length)
-            in_index5 = sum(index5_lengths == length)
-            if in_index5 > 0:
-                length_summary_dict[length] = f"2x{length}"
-            else:
-                length_summary_dict[length] = f"1x{length}"
+    length_summary_dict = {}
 
-        length_summary = ", ".join(length_summary_dict.values())
+    all_indices = pd.concat([index7_lengths, index5_lengths], ignore_index=True)
+    for length in all_indices.unique():
+        in_index7 = sum(index7_lengths == length)
+        in_index5 = sum(index5_lengths == length)
+        if in_index5 > 0:
+            length_summary_dict[length] = f"2x{length}"
+        else:
+            length_summary_dict[length] = f"1x{length}"
 
-        # Controllo duplicati e mismatch
-        status = "✅ Demultiplexing non stringente"
-        note = []
+    length_summary = ", ".join(length_summary_dict.values())
 
-        for i in range(len(lane_data)):
-            for j in range(i + 1, len(lane_data)):
-                str1 = str(lane_data.loc[i, "index7"])
-                str2 = str(lane_data.loc[j, "index7"])
-                matches = char_matches(str1, str2)
-                mismatches = abs(len(str1) - matches)  # differenze sui caratteri
+    # Controllo duplicati e mismatch come prima
+    status = "✅ Demultiplexing non stringente"
+    note = []
 
-                if str1 == str2:
-                    status = "❌ Errore: stessi indici presenti"
-                    note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno lo stesso indice.")
-                elif mismatches == 1 and status != "❌ Errore: stessi indici presenti":
-                    status = "⚠️ Demultiplexing stringente"
-                    note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno 1 mismatch.")
+    for i in range(len(lane_data)):
+        for j in range(i + 1, len(lane_data)):
+            str1 = str(lane_data.loc[i, "index7"])
+            str2 = str(lane_data.loc[j, "index7"])
+            matches = char_matches(str1, str2)
+            mismatches = abs(len(str1) - matches)  # differenze sui caratteri
 
-        st.markdown(f"**Lane {lane}:** {status}  |  **Index lengths:** {length_summary}")
-        if note:
-            for n in note:
-                st.markdown(f"- {n}")
-else:
-    st.error("❌ Colonna 'Lane' non trovata nel file Excel.")
+            if str1 == str2:
+                status = "❌ Errore: stessi indici presenti"
+                note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno lo stesso indice.")
+            elif mismatches == 1 and status != "❌ Errore: stessi indici presenti":
+                status = "⚠️ Demultiplexing stringente"
+                note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno 1 mismatch.")
+
+    st.markdown(f"**Lane {lane}:** {status}  |  **Index lengths:** {length_summary}")
+    if note:
+        for n in note:
+            st.markdown(f"- {n}")
+
 
 
 else:
