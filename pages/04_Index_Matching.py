@@ -97,6 +97,13 @@ if uploaded_file:
     # -------------------------------
     st.subheader("Data Quality Checks")
 
+    # Define the space or hypen function
+    def has_space_or_hyphen(value):
+    """Return True if the value contains spaces or hyphens, otherwise False."""
+    if pd.isna(value):
+        return False
+    return (" " in str(value)) or ("-" in str(value))
+
     # Check for duplicates
     duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
     duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
