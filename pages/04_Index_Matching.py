@@ -66,7 +66,7 @@ def filter_matching_pairs(df, thresholds):
 st.title("🔍 Index Matching Pairs Finder")
 
 # Sidebar
-st.sidebar.header("⚙️ Settings")
+st.sidebar.header("⚙️ Index Accepted Mismatch Settings")
 
 thresholds = {
     12: st.sidebar.number_input("Threshold for length 12", 1, 12, 11),
