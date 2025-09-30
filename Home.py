@@ -17,35 +17,38 @@ with col_title:
         unsafe_allow_html=True,
     )
 
-st.markdown("---")  # horizontal divider
+st.markdown("---")
 
-# --- Inject custom CSS for dark-theme cards ---
+# --- Inject custom CSS to make buttons look like cards with subtitle ---
 st.markdown(
     """
     <style>
-    .card {
-        background-color: #1e1e1e;  /* dark card */
+    div.stButton > button {
+        background-color: #1e1e1e;  /* dark card style */
+        color: #ccc;
         padding: 20px;
         border-radius: 15px;
         text-align: center;
+        font-size: 20px;
+        border: 1px solid #333;
         box-shadow: 0px 4px 12px rgba(0,0,0,0.6);
         transition: transform 0.2s ease-in-out, background-color 0.2s;
-        cursor: pointer;
-        border: 1px solid #333;
+        width: 100%;
+        height: auto;
+        white-space: normal;  /* allow text to wrap */
+        line-height: 1.4;     /* spacing for multi-line */
     }
-    .card:hover {
+    div.stButton > button:hover {
         transform: scale(1.02);
-        background-color: #2a2a2a;  /* slightly lighter on hover */
+        background-color: #2a2a2a;
         box-shadow: 0px 6px 16px rgba(0, 150, 255, 0.4);
+        color: #fff;
     }
-    .card h3 {
-        margin: 10px 0 5px 0;
-        font-size: 22px;
-        color: #00c3ff;  /* bright cyan for titles */
-    }
-    .card p {
-        color: #ccc;
-        font-size: 16px;
+    div.stButton > button span {
+        display: block;
+        font-size: 16px;      /* subtitle font size */
+        color: #aaa;          /* subtitle color */
+        margin-top: 5px;
     }
     </style>
     """,
@@ -62,17 +65,14 @@ db_col1, db_col2, db_col3 = st.columns(3)
 with db_col1:
     if st.button("🧊 Freezer Database", use_container_width=True):
         st.switch_page("pages/01_Freezer_Database.py")
-    st.markdown('<div class="card"><h3>🧊 Freezer</h3><p>Organize freezer samples and locations.</p></div>', unsafe_allow_html=True)
 
 with db_col2:
     if st.button("⚗️ Reagents Database", use_container_width=True):
         st.switch_page("pages/02_Reagents_Database.py")
-    st.markdown('<div class="card"><h3>⚗️ Reagents</h3><p>Track chemicals and consumables.</p></div>', unsafe_allow_html=True)
 
 with db_col3:
     if st.button("🧪 Plastics Database", use_container_width=True):
         st.switch_page("pages/03_Plastics_Database.py")
-    st.markdown('<div class="card"><h3>🧪 Plastics</h3><p>Manage lab plastics and inventory.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -85,10 +85,7 @@ tools_col1, tools_col2 = st.columns(2)
 with tools_col1:
     if st.button("🔎 Index7 Matching Tool", use_container_width=True):
         st.switch_page("pages/04_Index7_Matching.py")
-    st.markdown('<div class="card"><h3>🔎 Index7 Matching</h3><p>Check sequencing index overlaps.</p></div>', unsafe_allow_html=True)
 
 with tools_col2:
     if st.button("📊 Another Tool (future)", use_container_width=True):
         st.switch_page("pages/Other_Tool.py")
-    st.markdown('<div class="card"><h3>📊 Future Tool</h3><p>Reserved for upcoming analysis features.</p></div>', unsafe_allow_html=True)
-
