@@ -5,98 +5,182 @@ import os
 # Set app layout on wide
 st.set_page_config(layout="wide")
 
-st.title("🧪 Plastics Database")
-
+# File path
 file_path = "Plastics_Database.xlsx"
-COLUMNS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Quantità", "Box 96", "Box Location"]
 
-if os.path.exists(file_path):
-    df = pd.read_excel(file_path)
-else:
-    df = pd.DataFrame(columns=COLUMNS)
-    df.to_excel(file_path, index=False)
+# --- CACHE FUNCTION FOR DATA LOADING ---
+@st.cache_data(show_spinner="Loading database...")
+def load_data(path):
+    if os.path.exists(path):
+        return pd.read_excel(path, sheet_name="Template")
+    else:
+        # Create an empty DataFrame if the file doesn't exist
+        columns = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Quantità", "Box 96", "Box Location"]
+        df_new = pd.DataFrame(columns=columns)
+        df_new.to_excel(path, sheet_name="Template", index=False)
+        return df_new
+
+# --- INITIAL DATA LOAD & SESSION STATE SETUP ---
+if 'data_df' not in st.session_state:
+    st.session_state['data_df'] = load_data(file_path)
+
+df = st.session_state['data_df']
+
+st.title("DDLAB Plastics Database Management Tool")
 
 # ======================================================================
-# --- MULTI-CRITERIA SEARCH (NEW SECTION) ---
+# --- MULTI-CRITERIA SEARCH ---
 # ======================================================================
-st.header("Search Item")
+st.header("Search Plastics")
 
-# Define the fields available for searching
-SEARCH_FIELDS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Box Location"]
-
+SEARCH_FIELDS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Box 96", "Box Location"]
 selected_search_criteria = {}
 
 st.write("### Choose a combination of criteria to filter by:")
-# Create columns to display the select boxes
 cols = st.columns(len(SEARCH_FIELDS))
 
 for i, field in enumerate(SEARCH_FIELDS):
-    # Get unique values, ensuring no NaN values are passed to sort, and prepend a 'wildcard' option
-    unique_values = ['-- All Samples --'] + sorted(df[field].dropna().astype(str).unique().tolist())
-    
+    unique_values = ['-- All --'] + sorted(df[field].dropna().astype(str).unique().tolist())
     with cols[i]:
-        # Use a unique key for each selectbox
-        selected_value = st.selectbox(
-            f"Select {field}:",
-            unique_values,
-            key=f"search_filter_by_{field}"
-        )
+        selected_value = st.selectbox(f"Select {field}:", unique_values, key=f"search_{field}")
         selected_search_criteria[field] = selected_value
 
-# Filter the DataFrame based on the selected criteria
 combined_search_filter = pd.Series([True] * len(df))
-
 for field, value in selected_search_criteria.items():
-    if value != '-- All Samples --':
-        # Apply the filter. Note: astype(str) is used for consistency with selectbox options.
+    if value != '-- All --':
         combined_search_filter &= (df[field].astype(str) == value)
 
 search_results = df[combined_search_filter]
 
-# Display the search results
 if st.button("Apply Search Filters"):
     if search_results.empty:
-        st.warning("⚠️ No samples matched the selected criteria.")
+        st.warning("⚠️ No plastics matched the selected criteria.")
     else:
-        st.success(f"🔍 Found **{len(search_results)}** matching sample(s):")
+        st.success(f"🔍 Found **{len(search_results)}** matching record(s):")
         st.dataframe(search_results)
 
-# ----------------------------------------------------------------------
+# ======================================================================
+# --- ADD NEW ENTRY ---
+# ======================================================================
+st.header("Add New Plastic Item")
 
-# --- Add ---
-st.header("➕ Add New Plastic Item")
 with st.form("add_form"):
-    new_data = {col: st.text_input(col) for col in COLUMNS}
-    add_submit = st.form_submit_button("Add Plastic")
-    if add_submit:
-        df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
-        df.to_excel(file_path, index=False)
-        st.success("✅ Plastic item added!")
+    new_type = st.text_input("Plastic Type")
+    new_size = st.text_input("Size")
+    new_catalog = st.text_input("Catalog Number")
+    new_supplier = st.text_input("Supplier")
+    new_qty = st.text_input("Quantità")
+    new_box = st.text_input("Box 96")
+    new_location = st.text_input("Box Location")
+
+    submitted = st.form_submit_button("Add Plastic")
+
+    if submitted:
+        new_row = {"Plastic Type": new_type,
+                   "Size": new_size,
+                   "Catalog Number": new_catalog,
+                   "Supplier": new_supplier,
+                   "Quantità": new_qty,
+                   "Box 96": new_box,
+                   "Box Location": new_location}
+
+        new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        st.session_state['data_df'] = new_df
+        new_df.to_excel(file_path, sheet_name="Template", index=False)
+
+        st.success("✅ Plastic item added! Refreshing database...")
         st.rerun()
 
-# --- Delete ---
-st.header("❌ Delete Plastic Item")
-with st.form("delete_form"):
-    del_field = st.selectbox("Choose field:", COLUMNS, key="del_field")
-    del_values = sorted(df[del_field].dropna().unique()) if not df.empty else []
-    del_value = st.selectbox("Select value to delete:", del_values, key="del_value")
-    del_submit = st.form_submit_button("Delete")
-    if del_submit:
-        df = df[df[del_field] != del_value]
-        df.to_excel(file_path, index=False)
-        st.success(f"✅ Deleted entries where {del_field} = {del_value}")
+# ======================================================================
+# --- DELETE ENTRY ---
+# ======================================================================
+st.header("Delete Plastic Item")
+
+DEL_FIELDS = ["Plastic Type", "Catalog Number", "Supplier"]
+selected_criteria = {}
+cols = st.columns(len(DEL_FIELDS))
+
+for i, field in enumerate(DEL_FIELDS):
+    unique_values = ['-- All --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    with cols[i]:
+        selected_value = st.selectbox(f"Select {field}:", unique_values, key=f"delete_{field}")
+        selected_criteria[field] = selected_value
+
+combined_filter = pd.Series([True] * len(df))
+for field, value in selected_criteria.items():
+    if value != '-- All --':
+        combined_filter &= (df[field].astype(str) == value)
+
+rows_to_delete = df[combined_filter]
+num_rows_to_delete = len(rows_to_delete)
+
+if num_rows_to_delete == 0:
+    st.info("No records match the selected criteria.")
+else:
+    st.warning(f"⚠️ {num_rows_to_delete} record(s) will be deleted:")
+    st.dataframe(rows_to_delete)
+
+    if st.button("Confirm Deletion 🗑️"):
+        new_df = df[~combined_filter]
+        st.session_state['data_df'] = new_df
+        new_df.to_excel(file_path, sheet_name="Template", index=False)
+        st.success(f"✅ Deleted {num_rows_to_delete} record(s). Refreshing database...")
         st.rerun()
 
-# --- Edit ---
-st.header("✏️ Edit Plastic Item")
-with st.form("edit_form"):
-    edit_field = st.selectbox("Choose field:", COLUMNS, key="edit_field")
-    edit_values = sorted(df[edit_field].dropna().unique()) if not df.empty else []
-    edit_value = st.selectbox("Select value to edit:", edit_values, key="edit_value")
-    new_values = {col: st.text_input(f"New {col}", value=df.loc[df[edit_field]==edit_value, col].iloc[0] if not df[df[edit_field]==edit_value].empty else "") for col in COLUMNS}
-    edit_submit = st.form_submit_button("Update")
-    if edit_submit:
-        df.loc[df[edit_field]==edit_value, COLUMNS] = list(new_values.values())
-        df.to_excel(file_path, index=False)
-        st.success("✅ Plastic item updated!")
-        st.rerun()
+# ======================================================================
+# --- EDIT ENTRY ---
+# ======================================================================
+st.header("Edit Plastic Item")
+
+EDIT_FIELDS = ["Plastic Type", "Catalog Number", "Supplier"]
+selected_edit_criteria = {}
+cols = st.columns(len(EDIT_FIELDS))
+
+for i, field in enumerate(EDIT_FIELDS):
+    unique_values = ['-- Select --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    with cols[i]:
+        selected_value = st.selectbox(f"Filter by {field}:", unique_values, key=f"edit_{field}")
+        selected_edit_criteria[field] = selected_value
+
+combined_edit_filter = pd.Series([True] * len(df))
+for field, value in selected_edit_criteria.items():
+    if value != '-- Select --':
+        combined_edit_filter &= (df[field].astype(str) == value)
+
+rows_to_edit = df[combined_edit_filter]
+
+if len(rows_to_edit) == 1:
+    st.success("✅ One record selected for editing.")
+    edit_index = rows_to_edit.index[0]
+    existing_row = rows_to_edit.iloc[0]
+
+    with st.form("edit_form"):
+        edit_type = st.text_input("Plastic Type", value=str(existing_row['Plastic Type']))
+        edit_size = st.text_input("Size", value=str(existing_row['Size']))
+        edit_catalog = st.text_input("Catalog Number", value=str(existing_row['Catalog Number']))
+        edit_supplier = st.text_input("Supplier", value=str(existing_row['Supplier']))
+        edit_qty = st.text_input("Quantità", value=str(existing_row['Quantità']))
+        edit_box = st.text_input("Box 96", value=str(existing_row['Box 96']))
+        edit_location = st.text_input("Box Location", value=str(existing_row['Box Location']))
+
+        submitted = st.form_submit_button("Update Plastic")
+        if submitted:
+            updated_row = {"Plastic Type": edit_type,
+                           "Size": edit_size,
+                           "Catalog Number": edit_catalog,
+                           "Supplier": edit_supplier,
+                           "Quantità": edit_qty,
+                           "Box 96": edit_box,
+                           "Box Location": edit_location}
+
+            for key, value in updated_row.items():
+                st.session_state['data_df'].at[edit_index, key] = value
+
+            st.session_state['data_df'].to_excel(file_path, sheet_name="Template", index=False)
+            st.success("✅ Record updated! Refreshing database...")
+            st.rerun()
+
+elif len(rows_to_edit) == 0:
+    st.info("No record selected. Please refine your criteria.")
+else:
+    st.warning(f"⚠️ {len(rows_to_edit)} records match the criteria. Please refine to exactly one.")
