@@ -19,35 +19,39 @@ with col_title:
 
 st.markdown("---")  # horizontal divider
 
-# --- Inject custom CSS for card-style buttons ---
+# --- Inject custom CSS for dark-theme cards ---
 st.markdown(
     """
     <style>
     .card {
-        background-color: #f9f9f9;
+        background-color: #1e1e1e;  /* dark card */
         padding: 20px;
         border-radius: 15px;
         text-align: center;
-        box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-        transition: transform 0.2s ease-in-out;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.6);
+        transition: transform 0.2s ease-in-out, background-color 0.2s;
         cursor: pointer;
+        border: 1px solid #333;
     }
     .card:hover {
         transform: scale(1.02);
-        background-color: #eef6fb;
+        background-color: #2a2a2a;  /* slightly lighter on hover */
+        box-shadow: 0px 6px 16px rgba(0, 150, 255, 0.4);
     }
     .card h3 {
         margin: 10px 0 5px 0;
         font-size: 22px;
+        color: #00c3ff;  /* bright cyan for titles */
     }
     .card p {
-        color: #666;
+        color: #ccc;
         font-size: 16px;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 # --- Databases Section ---
 st.header("🗄️ Databases")
@@ -87,6 +91,7 @@ with tools_col2:
     if st.button("📊 Another Tool (future)", use_container_width=True):
         st.switch_page("pages/Other_Tool.py")
     st.markdown('<div class="card"><h3>📊 Future Tool</h3><p>Reserved for upcoming analysis features.</p></div>', unsafe_allow_html=True)
+
 
 
 
