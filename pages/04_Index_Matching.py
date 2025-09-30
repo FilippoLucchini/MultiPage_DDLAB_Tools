@@ -21,54 +21,20 @@ def char_matches(str1, str2):
     return sum(str1[i] == str2[i] for i in range(min_len))
 
 # -------------------------------
-# Filter matching pairs function
+# Count mismatches
 # -------------------------------
-def filter_matching_pairs(df):
-    result = []
-
-    for lane in df["Lane"].unique():
-        lane_data = df[df["Lane"] == lane].reset_index(drop=True)
-
-        for i in range(len(lane_data)):
-            for j in range(i + 1, len(lane_data)):  # avoid duplicate/self comparisons
-                str1 = str(lane_data.loc[i, "index7"])
-                str2 = str(lane_data.loc[j, "index7"])
-                len1 = len(str1)
-                len2 = len(str2)
-
-                matches = char_matches(str1, str2)
-                min_length = min(len1, len2)
-
-                # Soglie fisse
-                if min_length == 12:
-                    match_threshold = 11
-                elif min_length == 10:
-                    match_threshold = 9
-                elif min_length == 8:
-                    match_threshold = 7
-                else:
-                    match_threshold = 5
-
-                if matches >= match_threshold:
-                    result.append({
-                        "lane": lane,
-                        "GCF_ID_string1": lane_data.loc[i, "CGF_ID"],
-                        "GCF_ID_string2": lane_data.loc[j, "CGF_ID"],
-                        "Sample_ID_1": lane_data.loc[i, "Sample_ID"],
-                        "Sample_ID_2": lane_data.loc[j, "Sample_ID"],
-                        "index7_string1": str1,
-                        "index7_string2": str2,
-                        "length1": len1,
-                        "length2": len2,
-                        "matches": matches
-                    })
-
-    return pd.DataFrame(result)
+def mismatches(str1, str2):
+    """Return number of mismatches between two strings."""
+    if pd.isna(str1) or pd.isna(str2):
+        return None
+    min_len = min(len(str1), len(str2))
+    matches = sum(str1[i] == str2[i] for i in range(min_len))
+    return min_len - matches
 
 # -------------------------------
 # Streamlit app
 # -------------------------------
-st.title("🔍 Index Matching Pairs Finder")
+st.title("🔍 Index Matching & Data Quality Tool")
 
 uploaded_file = st.file_uploader("📂 Upload your Excel file", type=["xlsx"])
 
@@ -91,26 +57,6 @@ if uploaded_file:
     st.dataframe(df.head())
 
     # -------------------------------
-    # Matching Pairs
-    # -------------------------------
-    st.subheader("🔗 Matching Pairs")
-    matching_pairs_df = filter_matching_pairs(df)
-
-    if not matching_pairs_df.empty:
-        st.dataframe(matching_pairs_df)
-
-        # Download results
-        csv = matching_pairs_df.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="⬇️ Download Matching Pairs (CSV)",
-            data=csv,
-            file_name="matching_pairs.csv",
-            mime="text/csv"
-        )
-    else:
-        st.info("✅ No matching pairs found with the given thresholds.")
-
-    # -------------------------------
     # Data Quality Checks
     # -------------------------------
     st.subheader("🧪 Data Quality Checks")
@@ -130,7 +76,6 @@ if uploaded_file:
     - ⚠️ Sample_IDs with spaces/hyphens: **{len(sample_format_issues)}**
     """)
 
-    # Show tables if issues
     if not duplicated_cgf.empty:
         st.warning("Duplicated CGF_IDs (full rows):")
         st.dataframe(duplicated_cgf)
@@ -157,18 +102,26 @@ if uploaded_file:
 
         status = "✅ Demultiplexing non stringente"
         note = []
+        mismatch_rows = []
 
         for i in range(len(lane_data)):
             for j in range(i + 1, len(lane_data)):
                 str1 = str(lane_data.loc[i, "index7"])
                 str2 = str(lane_data.loc[j, "index7"])
-                matches = char_matches(str1, str2)
-                mismatches = abs(len(str1) - matches)  # differenze sui caratteri
+                mm = mismatches(str1, str2)
+
+                mismatch_rows.append({
+                    "Sample_1": lane_data.loc[i, "Sample_ID"],
+                    "Sample_2": lane_data.loc[j, "Sample_ID"],
+                    "Index_1": str1,
+                    "Index_2": str2,
+                    "Mismatches": mm
+                })
 
                 if str1 == str2:
                     status = "❌ Errore: stessi indici presenti"
                     note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno lo stesso indice.")
-                elif mismatches == 1 and status != "❌ Errore: stessi indici presenti":
+                elif mm == 1 and status != "❌ Errore: stessi indici presenti":
                     status = "⚠️ Demultiplexing stringente"
                     note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno 1 mismatch.")
 
@@ -177,7 +130,8 @@ if uploaded_file:
             for n in note:
                 st.markdown(f"- {n}")
 
+        # Tabella con tutte le coppie e mismatch
+        st.dataframe(pd.DataFrame(mismatch_rows))
+
 else:
     st.info("👆 Upload an Excel file to start the analysis.")
-
-
