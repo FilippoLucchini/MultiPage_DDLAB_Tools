@@ -42,7 +42,7 @@ with col3:
 st.header("Analysis Tools")
 st.write("Choose an analysis tool to run:")
 
-col4, col5, col6 = st.columns(3)
+col4, col5 = st.columns(2)
 
 with col4:
     if st.button("🔎 Index7 Matching Tool"):
@@ -52,9 +52,8 @@ with col5:
     if st.button("📊 Another Tool (future)"):
         st.switch_page("pages/Other_Tool.py")
 
-with col6:
-    if st.button("📊 Another Tool (future)"):
-        st.switch_page("pages/Other_Tool.py")
+
+
 
 
 
