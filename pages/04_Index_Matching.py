@@ -91,3 +91,35 @@ if uploaded_file:
         )
     else:
         st.info("No matching pairs found with the given thresholds.")
+
+# -------------------------------
+    # Check for duplicates and formatting issues
+    # -------------------------------
+    st.subheader("Data Quality Checks")
+
+    # Check for duplicates
+    duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
+    duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
+
+    if not duplicated_cgf.empty:
+        st.warning("Duplicated CGF_IDs found:")
+        st.dataframe(duplicated_cgf[["CGF_ID"]].drop_duplicates())
+
+    if not duplicated_sample.empty:
+        st.warning("Duplicated Sample_IDs found:")
+        st.dataframe(duplicated_sample[["Sample_ID"]].drop_duplicates())
+
+    # Check for spaces or hyphens
+    def has_space_or_hyphen(s):
+        return pd.notna(s) and (" " in s or "-" in s)
+
+    cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
+    sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
+
+    if not cgf_format_issues.empty:
+        st.warning("CGF_IDs with spaces or hyphens:")
+        st.dataframe(cgf_format_issues[["CGF_ID"]].drop_duplicates())
+
+    if not sample_format_issues.empty:
+        st.warning("Sample_IDs with spaces or hyphens:")
+        st.dataframe(sample_format_issues[["Sample_ID"]].drop_duplicates())
