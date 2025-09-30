@@ -84,4 +84,26 @@ st.markdown("---")
 # --- Analysis Section ---
 st.header("🧬 Analysis Tools")
 
-tools
+tools_col1, tools_col2 = st.columns(2)
+
+with tools_col1:
+    st.markdown(
+        f"""
+        <a href="/pages/04_Index7_Matching" target="_self" class="card">
+            <h3>🔎 Index7 Matching</h3>
+            <p>Check sequencing index overlaps.</p>
+        </a>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with tools_col2:
+    st.markdown(
+        f"""
+        <a href="/pages/Other_Tool" target="_self" class="card">
+            <h3>📊 Future Tool</h3>
+            <p>Reserved for upcoming analysis features.</p>
+        </a>
+        """,
+        unsafe_allow_html=True,
+    )
