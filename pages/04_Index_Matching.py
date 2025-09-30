@@ -30,7 +30,7 @@ def filter_matching_pairs(df):
         lane_data = df[df["Lane"] == lane].reset_index(drop=True)
 
         for i in range(len(lane_data)):
-            for j in range(i + 1, len(lane_data)):  # avoid duplicate/self comparisons
+            for j in range(i + 1, len(lane_data)):
                 str1 = str(lane_data.loc[i, "index7"])
                 str2 = str(lane_data.loc[j, "index7"])
                 len1 = len(str1)
@@ -115,19 +115,19 @@ if uploaded_file:
     # -------------------------------
     st.subheader("🧪 Data Quality Checks")
 
-    # Checks
+    # Duplicati solo su colonne specifiche
     duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
     duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
-    cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
-    sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
+
+    # Controllo spazi o trattini in tutte le colonne
+    total_format_issues = sum(df[col].apply(has_space_or_hyphen).sum() for col in df.columns)
 
     # Report summary
     st.markdown(f"""
     **Summary:**
     - 🧬 Duplicated CGF_ID: **{len(duplicated_cgf)}**
     - 🧪 Duplicated Sample_ID: **{len(duplicated_sample)}**
-    - ⚠️ CGF_IDs with spaces/hyphens: **{len(cgf_format_issues)}**
-    - ⚠️ Sample_IDs with spaces/hyphens: **{len(sample_format_issues)}**
+    - ⚠️ Totale celle con spazi o trattini: **{total_format_issues}**
     """)
 
     # Show tables if issues
@@ -139,13 +139,11 @@ if uploaded_file:
         st.warning("Duplicated Sample_IDs (full rows):")
         st.dataframe(duplicated_sample)
 
-    if not cgf_format_issues.empty:
-        st.warning("CGF_IDs with spaces or hyphens (full rows):")
-        st.dataframe(cgf_format_issues)
-
-    if not sample_format_issues.empty:
-        st.warning("Sample_IDs with spaces or hyphens (full rows):")
-        st.dataframe(sample_format_issues)
+    if total_format_issues > 0:
+        st.warning("Alcune celle contengono spazi o trattini (vedi DataFrame completo):")
+        # Mostra tutte le righe con almeno una cella problematica
+        format_issues_df = df[df.apply(lambda row: any(has_space_or_hyphen(row[col]) for col in df.columns), axis=1)]
+        st.dataframe(format_issues_df)
 
     # -------------------------------
     # Lane-specific demultiplexing report
