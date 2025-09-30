@@ -76,14 +76,20 @@ uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
-    
-    # Add string length column like in R
+
+    # Aggiungiamo colonna con riga reale in Excel (considerando intestazione)
+    df["Excel_Row"] = df.index + 2  
+
+    # Add string length column
     df["string_length"] = df["index7"].astype(str).str.len()
 
+    # Input preview
     st.subheader("Input Data Preview")
     st.dataframe(df.head())
 
-    # Run matching function
+    # -------------------------------
+    # Matching Pairs
+    # -------------------------------
     st.subheader("Matching Pairs")
     matching_pairs_df = filter_matching_pairs(df)
 
@@ -101,34 +107,34 @@ if uploaded_file:
     else:
         st.info("No matching pairs found with the given thresholds.")
 
-# -------------------------------
-# Data Quality Checks
-# -------------------------------
-st.subheader("Data Quality Checks")
+    # -------------------------------
+    # Data Quality Checks
+    # -------------------------------
+    st.subheader("Data Quality Checks")
 
-# Aggiungiamo colonna "Excel_Row" per sapere in che riga era il record
-df["Excel_Row"] = df.index + 2   # +2 perché riga 1 è intestazione in Excel
+    # Check for duplicate CGF_ID
+    duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
+    if not duplicated_cgf.empty:
+        st.warning("Duplicated CGF_IDs found (showing full rows):")
+        st.dataframe(duplicated_cgf)
 
-# Check for duplicate CGF_ID
-duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
-if not duplicated_cgf.empty:
-    st.warning("Duplicated CGF_IDs found (showing full rows):")
-    st.dataframe(duplicated_cgf)
+    # Check for duplicate Sample_ID
+    duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
+    if not duplicated_sample.empty:
+        st.warning("Duplicated Sample_IDs found (showing full rows):")
+        st.dataframe(duplicated_sample)
 
-# Check for duplicate Sample_ID
-duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
-if not duplicated_sample.empty:
-    st.warning("Duplicated Sample_IDs found (showing full rows):")
-    st.dataframe(duplicated_sample)
+    # Check for spaces or hyphens in CGF_ID
+    cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
+    if not cgf_format_issues.empty:
+        st.warning("CGF_IDs with spaces or hyphens (showing full rows):")
+        st.dataframe(cgf_format_issues)
 
-# Check for spaces or hyphens in CGF_ID
-cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
-if not cgf_format_issues.empty:
-    st.warning("CGF_IDs with spaces or hyphens (showing full rows):")
-    st.dataframe(cgf_format_issues)
+    # Check for spaces or hyphens in Sample_ID
+    sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
+    if not sample_format_issues.empty:
+        st.warning("Sample_IDs with spaces or hyphens (showing full rows):")
+        st.dataframe(sample_format_issues)
 
-# Check for spaces or hyphens in Sample_ID
-sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
-if not sample_format_issues.empty:
-    st.warning("Sample_IDs with spaces or hyphens (showing full rows):")
-    st.dataframe(sample_format_issues)
+else:
+    st.info("👆 Upload an Excel file to start the analysis.")
