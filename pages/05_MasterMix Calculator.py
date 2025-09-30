@@ -1,6 +1,7 @@
+# pages/2_reagent_calculator.py
 import streamlit as st
 
-# Define reagent kits and their per-sample amounts
+# Define reagent kits and their per-sample amounts (example values in mL)
 REAGENT_KITS = {
     "Kit A": {"Reagent 1": 5, "Reagent 2": 3, "Reagent 3": 2},
     "Kit B": {"Reagent X": 2, "Reagent Y": 4, "Reagent Z": 1.5},
@@ -9,44 +10,29 @@ REAGENT_KITS = {
 
 st.title("Reagent Calculator")
 
-# Initialize session state
-if "selected_kit" not in st.session_state:
-    st.session_state.selected_kit = None
+st.write("Choose a reagent kit:")
 
 # Step 1: Kit selection buttons
-st.write("Choose a reagent kit:")
+selected_kit = None
 cols = st.columns(len(REAGENT_KITS))
 for i, kit_name in enumerate(REAGENT_KITS.keys()):
     if cols[i].button(kit_name):
-        st.session_state.selected_kit = kit_name
+        selected_kit = kit_name
 
-# Step 2: If a kit is selected, show inputs and calculate
-if st.session_state.selected_kit:
-    kit_name = st.session_state.selected_kit
-    st.subheader(f"Selected Kit: {kit_name}")
-
-    # Inputs with session_state to preserve values
-    if "num_samples" not in st.session_state:
-        st.session_state.num_samples = 1
-    if "excess_percent" not in st.session_state:
-        st.session_state.excess_percent = 10.0
-
-    st.session_state.num_samples = st.number_input(
-        "Number of samples",
-        min_value=1,
-        value=st.session_state.num_samples,
-        step=1
-    )
-    st.session_state.excess_percent = st.number_input(
-        "Excess percentage (%)",
-        min_value=0.0,
-        value=st.session_state.excess_percent,
-        step=0.1
-    )
+# Step 2: If a kit is selected, ask for number of samples and excess
+if selected_kit:
+    st.subheader(f"Selected Kit: {selected_kit}")
+    num_samples = st.number_input("Number of samples", min_value=1, value=1, step=1)
+    excess_percent = st.number_input("Excess percentage (%)", min_value=0.0, value=10.0, step=0.1)
 
     if st.button("Calculate reagents"):
         st.subheader("Reagent amounts (with excess)")
-        kit = REAGENT_KITS[kit_name]
+        kit = REAGENT_KITS[selected_kit]
+        total_reagents = {}
         for reagent, amount_per_sample in kit.items():
-            total_amount = amount_per_sample * st.session_state.num_samples * (1 + st.session_state.excess_percent / 100)
+            total_amount = amount_per_sample * num_samples * (1 + excess_percent / 100)
+            total_reagents[reagent] = total_amount
+
+        # Display the results
+        for reagent, total_amount in total_reagents.items():
             st.write(f"{reagent}: {total_amount:.2f} mL")
