@@ -11,7 +11,7 @@ with col_title:
         """
         <h1 style="margin-bottom:0;">Welcome to <span style="color:#2E86C1;">DDLAB Tools</span> 👋</h1>
         <p style="font-size:20px; color:gray; margin-top:0;">
-        Manage databases and run sequencing analysis in one place.
+        Manage databases and useful tools in one place.
         </p>
         """,
         unsafe_allow_html=True,
@@ -93,6 +93,7 @@ with tools_col2:
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
 
