@@ -22,14 +22,16 @@ if st.session_state.get("back_to_selection"):
 # Kit selection view
 if "selected_kit" not in st.session_state or st.session_state.selected_kit is None:
     st.title("Select a Reagent Kit")
-    for kit_name in REAGENT_KITS.keys():
-        if st.button(kit_name):
-            st.session_state.selected_kit = kit_name
-            st.session_state.kit_data = REAGENT_KITS[kit_name]
-else:
-    kit_name = st.session_state.selected_kit
-    kit_data = st.session_state.kit_data
-    st.title(f"Reagent Calculator for {kit_name}")
+
+    kit_names = list(REAGENT_KITS.keys())
+    cols = st.columns(len(kit_names))  # One column per kit
+
+    for col, kit_name in zip(cols, kit_names):
+        with col:
+            if st.button(kit_name):
+                st.session_state.selected_kit = kit_name
+                st.session_state.kit_data = REAGENT_KITS[kit_name]
+
 
     # Ask once for samples and excess
     num_samples = st.number_input("Number of samples", min_value=1, step=1)
