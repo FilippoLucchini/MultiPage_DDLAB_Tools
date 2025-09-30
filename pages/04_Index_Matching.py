@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.pdfgen import canvas
 
 # -------------------------------
 # Utility check function
@@ -63,6 +67,77 @@ def filter_matching_pairs(df):
     return pd.DataFrame(result)
 
 # -------------------------------
+# Generate PDF for lane report
+# -------------------------------
+def generate_lane_report_pdf(df):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    y = height - 2*cm
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(2*cm, y, "Demultiplexing Recommendations Report")
+    y -= 1*cm
+    c.setFont("Helvetica", 12)
+
+    for lane in df["Lane"].unique():
+        lane_data = df[df["Lane"] == lane].reset_index(drop=True)
+
+        # Lunghezze indici
+        index7_lengths = lane_data["index7"].astype(str).str.len()
+        index5_lengths = lane_data["index5"].astype(str).str.len() if "index5" in lane_data.columns else pd.Series(dtype=int)
+
+        length_summary_dict = {}
+        all_lengths = sorted(set(index7_lengths.tolist() + index5_lengths.tolist()))
+        for length in all_lengths:
+            in_index7 = sum(index7_lengths == length)
+            in_index5 = sum(index5_lengths == length)
+            if in_index5 > 0:
+                length_summary_dict[length] = f"2x{length}"
+            else:
+                length_summary_dict[length] = f"1x{length}"
+        length_summary = ", ".join(length_summary_dict.values())
+
+        # Status e note
+        status = "✅ Demultiplexing non stringente"
+        note_list = []
+
+        for i in range(len(lane_data)):
+            for j in range(i + 1, len(lane_data)):
+                str1 = str(lane_data.loc[i, "index7"])
+                str2 = str(lane_data.loc[j, "index7"])
+                matches = char_matches(str1, str2)
+                mismatches = abs(len(str1) - matches)
+
+                if str1 == str2:
+                    status = "❌ Errore: stessi indici presenti"
+                    note_list.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno lo stesso indice.")
+                elif mismatches == 1 and status != "❌ Errore: stessi indici presenti":
+                    status = "⚠️ Demultiplexing stringente"
+                    note_list.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno 1 mismatch.")
+
+        # Scrivi sul PDF
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(2*cm, y, f"Lane {lane}: {status}")
+        y -= 0.6*cm
+        c.setFont("Helvetica", 12)
+        c.drawString(2*cm, y, f"Index lengths: {length_summary}")
+        y -= 0.6*cm
+        if note_list:
+            for note in note_list:
+                c.drawString(3*cm, y, f"- {note}")
+                y -= 0.5*cm
+        y -= 0.5*cm
+
+        if y < 3*cm:  # nuova pagina se spazio finisce
+            c.showPage()
+            y = height - 2*cm
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+# -------------------------------
 # Streamlit app
 # -------------------------------
 st.title("🔍 Index Matching Pairs Finder")
@@ -71,8 +146,6 @@ uploaded_file = st.file_uploader("📂 Upload your Excel file", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
-
-    # Rimuove spazi extra dai nomi delle colonne
     df.columns = df.columns.str.strip()
 
     # Controllo colonne richieste
@@ -82,11 +155,9 @@ if uploaded_file:
         st.error(f"❌ Missing required columns in file: {', '.join(missing_cols)}")
         st.stop()
 
-    # Aggiunge info utili
     df["Excel_Row"] = df.index + 2  
     df["string_length"] = df["index7"].astype(str).str.len()
 
-    # Preview input
     st.subheader("📊 Input Data Preview")
     st.dataframe(df.head())
 
@@ -116,7 +187,6 @@ if uploaded_file:
 
     duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
     duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
-
     total_format_issues = sum(df[col].apply(has_space_or_hyphen).sum() for col in df.columns)
 
     st.markdown(f"""
@@ -147,7 +217,6 @@ if uploaded_file:
     for lane in df["Lane"].unique():
         lane_data = df[df["Lane"] == lane].reset_index(drop=True)
 
-        # Lunghezze indici index7/index5
         index7_lengths = lane_data["index7"].astype(str).str.len()
         index5_lengths = lane_data["index5"].astype(str).str.len() if "index5" in lane_data.columns else pd.Series(dtype=int)
 
@@ -156,15 +225,12 @@ if uploaded_file:
         for length in all_lengths:
             in_index7 = sum(index7_lengths == length)
             in_index5 = sum(index5_lengths == length)
-            if in_index5 > 0:
-                length_summary_dict[length] = f"2x{length}"
-            else:
-                length_summary_dict[length] = f"1x{length}"
+            length_summary_dict[length] = f"2x{length}" if in_index5 > 0 else f"1x{length}"
 
         length_summary = ", ".join(length_summary_dict.values())
 
         status = "✅ Demultiplexing non stringente"
-        note = []
+        note_list = []
 
         for i in range(len(lane_data)):
             for j in range(i + 1, len(lane_data)):
@@ -175,15 +241,27 @@ if uploaded_file:
 
                 if str1 == str2:
                     status = "❌ Errore: stessi indici presenti"
-                    note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno lo stesso indice.")
+                    note_list.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno lo stesso indice.")
                 elif mismatches == 1 and status != "❌ Errore: stessi indici presenti":
                     status = "⚠️ Demultiplexing stringente"
-                    note.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno 1 mismatch.")
+                    note_list.append(f"Samples {lane_data.loc[i,'Sample_ID']} and {lane_data.loc[j,'Sample_ID']} hanno 1 mismatch.")
 
         st.markdown(f"**Lane {lane}:** {status}  |  **Index lengths:** {length_summary}")
-        if note:
-            for n in note:
+        if note_list:
+            for n in note_list:
                 st.markdown(f"- {n}")
+
+    # -------------------------------
+    # Bottone per scaricare il PDF del report
+    # -------------------------------
+    pdf_buffer = generate_lane_report_pdf(df)
+    st.download_button(
+        label="⬇️ Download Lane Report (PDF)",
+        data=pdf_buffer,
+        file_name="demultiplexing_report.pdf",
+        mime="application/pdf"
+    )
 
 else:
     st.info("👆 Upload an Excel file to start the analysis.")
+
