@@ -32,7 +32,7 @@ with col1:
 
 with col2:
     if st.button("⚗️ Reagents Database"):
-        st.switch_page("pages/Reagents_Database.py")
+        st.switch_page("pages/Databases/02_Reagents_Database.py")
 
 with col3:
     if st.button("🧪 Plastics Database"):
@@ -51,6 +51,7 @@ with col4:
 with col5:
     if st.button("📊 Another Tool (future)"):
         st.switch_page("pages/Other_Tool.py")
+
 
 
 
