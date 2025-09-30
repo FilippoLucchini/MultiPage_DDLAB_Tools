@@ -84,13 +84,14 @@ tools_col1, tools_col2 = st.columns(2)
 
 with tools_col1:
     if st.button("🔎 Index7 Matching Tool", use_container_width=True):
-        st.switch_page("pages/04_Index7_Matching.py")
+        st.switch_page("pages/04_Index_Matching.py")
     st.markdown('<div class="card"><h3>🔎 Index7 Matching</h3><p>Check sequencing index overlaps.</p></div>', unsafe_allow_html=True)
 
 with tools_col2:
     if st.button("🥣 Master Mix Calculator", use_container_width=True):
         st.switch_page("pages/05_MasterMix Calculator.py")
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
+
 
 
 
