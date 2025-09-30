@@ -110,27 +110,25 @@ if uploaded_file:
     else:
         st.info("✅ No matching pairs found with the given thresholds.")
 
-  # -------------------------------
+ # -------------------------------
 # Data Quality Checks
 # -------------------------------
 st.subheader("🧪 Data Quality Checks")
 
-# Checks duplicati (solo colonne specifiche)
+# Controllo duplicati (solo colonne specifiche)
 duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
 duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
 
-# Controllo spazi o trattini in TUTTE le colonne
-format_issues = {col: df[df[col].apply(has_space_or_hyphen)] for col in df.columns}
+# Controllo spazi o trattini in tutte le colonne
+total_format_issues = sum(df[col].apply(has_space_or_hyphen).sum() for col in df.columns)
 
 # Report summary
 st.markdown(f"""
 **Summary:**
 - 🧬 Duplicated CGF_ID: **{len(duplicated_cgf)}**
 - 🧪 Duplicated Sample_ID: **{len(duplicated_sample)}**
+- ⚠️ Totale celle con spazi o trattini: **{total_format_issues}**
 """)
-
-for col, issues_df in format_issues.items():
-    st.markdown(f"- ⚠️ {col} con spazi o trattini: **{len(issues_df)}**")
 
 # Show tables if issues
 if not duplicated_cgf.empty:
@@ -141,10 +139,11 @@ if not duplicated_sample.empty:
     st.warning("Duplicated Sample_IDs (full rows):")
     st.dataframe(duplicated_sample)
 
-for col, issues_df in format_issues.items():
-    if not issues_df.empty:
-        st.warning(f"{col} con spazi o trattini (full rows):")
-        st.dataframe(issues_df)
+if total_format_issues > 0:
+    st.warning("Alcune celle contengono spazi o trattini (vedi DataFrame completo):")
+    # Opzionale: mostra tutte le righe con almeno un problema
+    format_issues_df = df[df.apply(lambda row: any(has_space_or_hyphen(row[col]) for col in df.columns), axis=1)]
+    st.dataframe(format_issues_df)
 
     # -------------------------------
     # Lane-specific demultiplexing report
