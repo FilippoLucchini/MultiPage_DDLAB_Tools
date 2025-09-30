@@ -52,12 +52,12 @@ else:
                 total = per_sample * num_samples * excess_factor
                 reaction_results.append({
                     "Reagent": reagent,
-                    "Amount (ul)": round(total, 2)
+                    "Amount (ul)": format(total, ".2f")
                 })
                 results.append({
                     "Reaction": reaction_name,
                     "Reagent": reagent,
-                    "Amount (ul)": round(total, 2)
+                    "Amount (ul)": format(total, ".2f")
                 })
 
             with col:
