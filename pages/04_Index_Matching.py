@@ -2,6 +2,15 @@ import streamlit as st
 import pandas as pd
 
 # -------------------------------
+# Utility check function
+# -------------------------------
+def has_space_or_hyphen(value):
+    """Return True if the value contains spaces or hyphens, otherwise False."""
+    if pd.isna(value):
+        return False
+    return (" " in str(value)) or ("-" in str(value))
+
+# -------------------------------
 # Character match function
 # -------------------------------
 def char_matches(str1, str2):
@@ -91,4 +100,34 @@ if uploaded_file:
         )
     else:
         st.info("No matching pairs found with the given thresholds.")
+
+    # -------------------------------
+    # Data Quality Checks
+    # -------------------------------
+    st.subheader("Data Quality Checks")
+
+    # Check for duplicate CGF_ID
+    duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
+    if not duplicated_cgf.empty:
+        st.warning("Duplicated CGF_IDs found:")
+        st.dataframe(duplicated_cgf[["CGF_ID"]].drop_duplicates())
+
+    # Check for duplicate Sample_ID
+    duplicated_sample = df[df["Sample_ID"].duplicated(keep=False)]
+    if not duplicated_sample.empty:
+        st.warning("Duplicated Sample_IDs found:")
+        st.dataframe(duplicated_sample[["Sample_ID"]].drop_duplicates())
+
+    # Check for spaces or hyphens in CGF_ID
+    cgf_format_issues = df[df["CGF_ID"].apply(has_space_or_hyphen)]
+    if not cgf_format_issues.empty:
+        st.warning("CGF_IDs with spaces or hyphens:")
+        st.dataframe(cgf_format_issues[["CGF_ID"]].drop_duplicates())
+
+    # Check for spaces or hyphens in Sample_ID
+    sample_format_issues = df[df["Sample_ID"].apply(has_space_or_hyphen)]
+    if not sample_format_issues.empty:
+        st.warning("Sample_IDs with spaces or hyphens:")
+        st.dataframe(sample_format_issues[["Sample_ID"]].drop_duplicates())
+
 
