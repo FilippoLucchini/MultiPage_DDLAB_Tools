@@ -71,7 +71,7 @@ else:
     # Back button
     if st.button("🔙 Back to Kit Selection"):
         st.session_state.back_to_selection = True
-        st.experimental_rerun()
+        st.rerun()
 
         st.session_state.kit_data = None
 
