@@ -22,7 +22,7 @@ def load_data(path):
 
 # --- INITIAL DATA LOAD & SESSION STATE SETUP ---
 if 'reagents_df' not in st.session_state:
-st.session_state['reagents_df'] = load_data(file_path)
+    st.session_state['reagents_df'] = load_data(file_path)
 
 df = st.session_state['reagents_df']
 
@@ -83,7 +83,7 @@ with st.form("add_form"):
                    "Storage Location": new_location}
 
         new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        st.session_state['data_df'] = new_df
+        st.session_state['reagents_df'] = new_df
         new_df.to_excel(file_path, sheet_name="Template", index=False)
 
         st.success("✅ Reagent added! Refreshing database...")
@@ -120,7 +120,7 @@ else:
 
     if st.button("Confirm Deletion 🗑️"):
         new_df = df[~combined_filter]
-        st.session_state['data_df'] = new_df
+        st.session_state['reagents_df'] = new_df
         new_df.to_excel(file_path, sheet_name="Template", index=False)
         st.success(f"✅ Deleted {num_rows_to_delete} record(s). Refreshing database...")
         st.rerun()
@@ -170,9 +170,9 @@ if len(rows_to_edit) == 1:
                            "Storage Location": edit_location}
 
             for key, value in updated_row.items():
-                st.session_state['data_df'].at[edit_index, key] = value
+                st.session_state['reagents_df'].at[edit_index, key] = value
 
-            st.session_state['data_df'].to_excel(file_path, sheet_name="Template", index=False)
+            st.session_state['reagents_df'].to_excel(file_path, sheet_name="Template", index=False)
             st.success("✅ Record updated! Refreshing database...")
             st.rerun()
 
@@ -180,3 +180,4 @@ elif len(rows_to_edit) == 0:
     st.info("No record selected. Please refine your criteria.")
 else:
     st.warning(f"⚠️ {len(rows_to_edit)} records match the criteria. Please refine to exactly one.")
+
