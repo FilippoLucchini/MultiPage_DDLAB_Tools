@@ -36,26 +36,28 @@ else:
     excess_pct = st.slider("Excess (%)", min_value=0, max_value=100, value=10)
     excess_factor = 1 + (excess_pct / 100)
 
-    results = []
+    # Calculate button
+    if st.button("Calculate Reagents"):
+        results = []
+        st.subheader("Calculated Reagent Amounts")
+        for reaction_name, reagents in kit_data.items():
+            st.markdown(f"**{reaction_name}**")
+            for reagent, per_sample in reagents.items():
+                total = per_sample * num_samples * excess_factor
+                st.write(f"{reagent}: {total:.2f} units")
+                results.append({
+                    "Reaction": reaction_name,
+                    "Reagent": reagent,
+                    "Amount": round(total, 2)
+                })
 
-    st.subheader("Calculated Reagent Amounts")
-    for reaction_name, reagents in kit_data.items():
-        st.markdown(f"**{reaction_name}**")
-        for reagent, per_sample in reagents.items():
-            total = per_sample * num_samples * excess_factor
-            st.write(f"{reagent}: {total:.2f} units")
-            results.append({
-                "Reaction": reaction_name,
-                "Reagent": reagent,
-                "Amount": round(total, 2)
-            })
-
-    # Export CSV
-    df = pd.DataFrame(results)
-    csv = df.to_csv(index=False).encode("utf-8")
-    st.download_button("Download All Reagents as CSV", data=csv, file_name=f"{kit_name}_reagents.csv", mime="text/csv")
+        # Export CSV
+        df = pd.DataFrame(results)
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("Download All Reagents as CSV", data=csv, file_name=f"{kit_name}_reagents.csv", mime="text/csv")
 
     # Back button
     if st.button("🔙 Back to Kit Selection"):
         st.session_state.selected_kit = None
         st.session_state.kit_data = None
+
