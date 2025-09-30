@@ -36,11 +36,17 @@ else:
     excess_pct = st.slider("Excess (%)", min_value=0, max_value=100, value=10)
     excess_factor = 1 + (excess_pct / 100)
 
-    # Calculate button
-    if st.button("Calculate Reagents"):
-        results = []
-        st.subheader("Calculated Reagent Amounts")
-        for reaction_name, reagents in kit_data.items():
+   # Calculate button
+if st.button("Calculate Reagents"):
+    st.subheader("Calculated Reagent Amounts")
+
+    results = []
+    reaction_names = list(kit_data.keys())
+    columns = st.columns(len(reaction_names))  # Create one column per reaction
+
+    for col, reaction_name in zip(columns, reaction_names):
+        reagents = kit_data[reaction_name]
+        with col:
             st.markdown(f"**{reaction_name}**")
             for reagent, per_sample in reagents.items():
                 total = per_sample * num_samples * excess_factor
@@ -51,10 +57,10 @@ else:
                     "Amount": round(total, 2)
                 })
 
-        # Export CSV
-        df = pd.DataFrame(results)
-        csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download All Reagents as CSV", data=csv, file_name=f"{kit_name}_reagents.csv", mime="text/csv")
+    # Export CSV
+    df = pd.DataFrame(results)
+    csv = df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download All Reagents as CSV", data=csv, file_name=f"{kit_name}_reagents.csv", mime="text/csv")
 
     # Back button
     if st.button("🔙 Back to Kit Selection"):
