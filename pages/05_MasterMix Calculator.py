@@ -77,20 +77,20 @@ else:
             mime="text/csv"
         )
 
-    df = pd.DataFrame(results)
+   
+        # Export to XLSX
+        df = pd.DataFrame(results)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Reagents')
+        output.seek(0)
 
-    # Export to XLSX
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='Reagents')
-    output.seek(0)
-
-    st.download_button(
-        "Download All Reagents as XLSX",
-        data=output,
-        file_name=f"{kit_name}_reagents.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+        st.download_button(
+            "Download All Reagents as XLSX",
+            data=output,
+            file_name=f"{kit_name}_reagents.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     # Back button
     if st.button("🔙 Back to Kit Selection"):
