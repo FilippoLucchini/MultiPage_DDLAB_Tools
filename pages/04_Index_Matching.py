@@ -113,7 +113,7 @@ if uploaded_file:
     # -------------------------------
     # Data Quality Checks
     # -------------------------------
-    st.subheader("🧪 Data Quality Checks")
+    st.subheader("🔍 Data Quality Checks")
 
     # Duplicati solo su colonne specifiche
     duplicated_cgf = df[df["CGF_ID"].duplicated(keep=False)]
