@@ -63,15 +63,15 @@ st.write("Choose a database to manage:")
 db_col1, db_col2, db_col3 = st.columns(3)
 
 with db_col1:
-    if st.button("🧊 Freezer Database", use_container_width=True):
+    if st.button("🧊 Freezer Database\nOrganize freezer samples and locations", use_container_width=True):
         st.switch_page("pages/01_Freezer_Database.py")
 
 with db_col2:
-    if st.button("⚗️ Reagents Database", use_container_width=True):
+    if st.button("⚗️ Reagents Database\nTrack chemicals and consumables", use_container_width=True):
         st.switch_page("pages/02_Reagents_Database.py")
 
 with db_col3:
-    if st.button("🧪 Plastics Database", use_container_width=True):
+    if st.button("🧪 Plastics Database\nManage lab plastics and inventory", use_container_width=True):
         st.switch_page("pages/03_Plastics_Database.py")
 
 st.markdown("---")
@@ -83,9 +83,10 @@ st.write("Choose an analysis tool to run:")
 tools_col1, tools_col2 = st.columns(2)
 
 with tools_col1:
-    if st.button("🔎 Index7 Matching Tool", use_container_width=True):
+    if st.button("🔎 Index7 Matching Tool\nCheck sequencing index overlaps", use_container_width=True):
         st.switch_page("pages/04_Index7_Matching.py")
 
 with tools_col2:
-    if st.button("📊 Another Tool (future)", use_container_width=True):
+    if st.button("📊 Another Tool (future)\nReserved for upcoming analysis features", use_container_width=True):
         st.switch_page("pages/Other_Tool.py")
+
