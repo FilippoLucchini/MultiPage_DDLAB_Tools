@@ -29,7 +29,7 @@ if st.session_state.selected_kit is None:
 else:
     kit_name = st.session_state.selected_kit
     kit_data = st.session_state.kit_data
-    st.title(f"Reagent Calculator for {kit_name}")
+    st.title(f"Master Mix Calculator for {kit_name}")
 
     # Ask once for samples and excess
     num_samples = st.number_input("Number of samples", min_value=1, step=1)
