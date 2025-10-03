@@ -164,12 +164,3 @@ elif selected_action == "Log Maintenance/Issue":
             else:
                 add_maintenance_log(log_date, equipment, log_type, details, user)
                 st.success(f"Log entry recorded for {equipment} on {log_date.strftime('%Y-%m-%d')}.")
-
-
-
-
-
-
-
-
- will the excel update after each modifications from the app, so that if then i download it it will be up to date?
