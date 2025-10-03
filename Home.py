@@ -114,7 +114,7 @@ stats_col1, stats_col2 = st.columns(2)
 
 with stats_col1:
     if st.button("📂 Samples Overview", use_container_width=True):
-        st.switch_page("pages/1_Samples.py")
+        st.switch_page("pages/06_Samples.py")
     st.markdown(
         f'<div class="card"><h3>📂 Samples</h3><p>{len(samples_this_year)} samples added this year.</p></div>',
         unsafe_allow_html=True
@@ -122,11 +122,12 @@ with stats_col1:
 
 with stats_col2:
     if st.button("🧬 Sequencing Runs Overview", use_container_width=True):
-        st.switch_page("pages/2_Sequencing.py")
+        st.switch_page("pages/07_Sequencing_Runs.py")
     st.markdown(
         f'<div class="card"><h3>🧬 Sequencing Runs</h3><p>{len(runs_this_year)} runs performed this year.</p></div>',
         unsafe_allow_html=True
     )
+
 
 
 
