@@ -11,7 +11,7 @@ st.title("Sequencing Runs Overview")
 # --- Add new run ---
 with st.form("add_run"):
     st.subheader("Add a new sequencing run")
-    platform = st.selectbox("Platform", ["Illumina Novaseq X", "ONT PromethION", "Other"])
+    platform = st.selectbox("Platform", ["Illumina Novaseq X", "Illumina Novaseq 6000", "Illumina NextSeq2000", "ONT PromethION", "ONT MinION", "GeneMind", "Salus EVO", "Element Aviti", "MGI"])
     run_date = st.date_input("Date", datetime.date.today())
     submitted = st.form_submit_button("Add Run")
 
