@@ -20,7 +20,7 @@ with st.form("add_run"):
     if submitted:
         db.add_run(platform, flowcell, run_date)
         st.success(f"Added run on {platform} ({flowcell}) [{run_date}]")
-        st.experimental_rerun()
+        st.rerun()
 
 # --- Show chart ---
 runs_this_year = db.get_runs(year)
