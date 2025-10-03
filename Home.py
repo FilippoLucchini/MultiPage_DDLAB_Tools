@@ -1,4 +1,6 @@
 import streamlit as st
+import datetime
+import db  # make sure db.py is in the root folder
 
 st.set_page_config(page_title="DDLAB Tools", page_icon="🧬", layout="wide")
 
@@ -32,6 +34,7 @@ st.markdown(
         transition: transform 0.2s ease-in-out, background-color 0.2s;
         cursor: pointer;
         border: 1px solid #333;
+        margin-bottom: 20px;
     }
     .card:hover {
         transform: scale(1.02);
@@ -95,9 +98,35 @@ with tools_col2:
 st.markdown("---")  # horizontal divider
 
 
+# ===========================
+# --- Statistics Recap ---
+# ===========================
+db.init_db()
+year = datetime.datetime.now().year
 
+samples_this_year = db.get_samples(year)
+runs_this_year = db.get_runs(year)
 
+st.header(f"📊 Statistics Recap {year}")
+st.write("Quick overview of current year’s lab activity:")
 
+stats_col1, stats_col2 = st.columns(2)
+
+with stats_col1:
+    if st.button("📂 Samples Overview", use_container_width=True):
+        st.switch_page("pages/1_Samples.py")
+    st.markdown(
+        f'<div class="card"><h3>📂 Samples</h3><p>{len(samples_this_year)} samples added this year.</p></div>',
+        unsafe_allow_html=True
+    )
+
+with stats_col2:
+    if st.button("🧬 Sequencing Runs Overview", use_container_width=True):
+        st.switch_page("pages/2_Sequencing.py")
+    st.markdown(
+        f'<div class="card"><h3>🧬 Sequencing Runs</h3><p>{len(runs_this_year)} runs performed this year.</p></div>',
+        unsafe_allow_html=True
+    )
 
 
 
