@@ -2,6 +2,7 @@ import streamlit as st
 import datetime
 import plotly.express as px
 import db
+import pandas as pd
 
 db.init_db()
 year = datetime.datetime.now().year
@@ -12,18 +13,20 @@ st.title("Sequencing Runs Overview")
 with st.form("add_run"):
     st.subheader("Add a new sequencing run")
     platform = st.selectbox("Platform", ["Illumina Novaseq X", "Illumina Novaseq 6000", "Illumina NextSeq2000", "ONT PromethION", "ONT MinION", "GeneMind", "Salus EVO", "Element Aviti", "MGI"])
+    flowcell = st.text_input("Flowcell type (e.g. S4, SP, R9.4)", "")
     run_date = st.date_input("Date", datetime.date.today())
     submitted = st.form_submit_button("Add Run")
 
     if submitted:
-        db.add_run(platform, run_date)
-        st.success(f"Added run on {platform} ({run_date})")
+        db.add_run(platform, flowcell, run_date)
+        st.success(f"Added run on {platform} ({flowcell}) [{run_date}]")
         st.experimental_rerun()
 
 # --- Show chart ---
 runs_this_year = db.get_runs(year)
 
 if runs_this_year:
+    # Aggregate by platform
     counts = {}
     for r in runs_this_year:
         counts[r["platform"]] = counts.get(r["platform"], 0) + 1
@@ -35,5 +38,10 @@ if runs_this_year:
         title=f"Sequencing Runs by Platform in {year}"
     )
     st.plotly_chart(fig, use_container_width=True)
+
+# Detailed table
+    st.subheader("Detailed Runs")
+    df = pd.DataFrame(runs_this_year)
+    st.dataframe(df)
 else:
     st.info(f"No sequencing runs recorded yet for {year}.")
