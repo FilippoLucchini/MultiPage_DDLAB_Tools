@@ -1,6 +1,5 @@
 import streamlit as st
 import datetime
-import db  # make sure db.py is in the root folder
 
 st.set_page_config(page_title="DDLAB Tools", page_icon="🧬", layout="wide")
 
@@ -96,5 +95,6 @@ with tools_col2:
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
