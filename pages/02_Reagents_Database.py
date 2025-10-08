@@ -15,11 +15,7 @@ def load_data(path):
         return pd.read_excel(path, sheet_name="Template")
     else:
         # Create an empty DataFrame if the file doesn't exist
-        columns = [
-            "Reagent Type", "Supplier", "Reagent Name", "Lot Number", "Expiry Date",
-            "Total Reactions", "Reactions Used", "Reactions Available",
-            "Storage Location", "Cassetto"
-        ]
+        columns = ["Reagent Type", "Supplier", "Reagent Name", "Lot Number", "Expiry Date", "Storage Location"]
         df_new = pd.DataFrame(columns=columns)
         df_new.to_excel(path, sheet_name="Template", index=False)
         return df_new
@@ -37,43 +33,21 @@ st.title("DDLAB Reagents Database Management Tool")
 # ======================================================================
 st.header("Search Reagents")
 
-SEARCH_FIELDS = [
-    "Reagent Type", "Supplier", "Reagent Name", "Lot Number",
-    "Total Reactions", "Reactions Used", "Reactions Available",
-    "Storage Location", "Cassetto"
-]
+SEARCH_FIELDS = ["Reagent Type", "Supplier", "Reagent Name", "Lot Number", "Storage Location"]
 selected_search_criteria = {}
 
 st.write("### Choose a combination of criteria to filter by:")
 cols = st.columns(len(SEARCH_FIELDS))
 
 for i, field in enumerate(SEARCH_FIELDS):
-    if field in df.columns:
-        # Detect numeric vs string field
-        if pd.api.types.is_numeric_dtype(df[field]):
-            min_val = int(df[field].min()) if not df[field].isna().all() else 0
-            max_val = int(df[field].max()) if not df[field].isna().all() else 0
-            with cols[i]:
-                selected_min, selected_max = st.slider(
-                    f"{field} range:",
-                    min_value=min_val, max_value=max_val,
-                    value=(min_val, max_val), key=f"search_slider_{field}"
-                )
-                selected_search_criteria[field] = (selected_min, selected_max)
-        else:
-            unique_values = ['-- All --'] + sorted(df[field].dropna().astype(str).unique().tolist())
-            with cols[i]:
-                selected_value = st.selectbox(f"Select {field}:", unique_values, key=f"search_{field}")
-                selected_search_criteria[field] = selected_value
+    unique_values = ['-- All --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    with cols[i]:
+        selected_value = st.selectbox(f"Select {field}:", unique_values, key=f"search_{field}")
+        selected_search_criteria[field] = selected_value
 
-# --- Apply filters ---
 combined_search_filter = pd.Series([True] * len(df))
-
 for field, value in selected_search_criteria.items():
-    if isinstance(value, tuple):  # numeric range
-        min_val, max_val = value
-        combined_search_filter &= df[field].between(min_val, max_val, inclusive="both")
-    elif value != '-- All --':
+    if value != '-- All --':
         combined_search_filter &= (df[field].astype(str) == value)
 
 search_results = df[combined_search_filter]
@@ -83,18 +57,7 @@ if st.button("Apply Search Filters"):
         st.warning("⚠️ No reagents matched the selected criteria.")
     else:
         st.success(f"🔍 Found **{len(search_results)}** matching reagent(s):")
-
-        # Reorder columns for clarity, if they exist
-        display_cols = [
-            "Reagent Type", "Supplier", "Reagent Name", "Lot Number", "Expiry Date",
-            "Total Reactions", "Reactions Used", "Reactions Available",
-            "Storage Location", "Cassette"
-        ]
-        display_cols = [c for c in display_cols if c in search_results.columns]
-
-        st.dataframe(search_results[display_cols])
-
-
+        st.dataframe(search_results)
 
 # ======================================================================
 # --- ADD NEW ENTRY ---
@@ -107,27 +70,17 @@ with st.form("add_form"):
     new_name = st.text_input("Reagent Name")
     new_lot = st.text_input("Lot Number")
     new_expiry = st.text_input("Expiry Date")
-    new_total = st.number_input("Total Reactions", min_value=0, step=1)
-    new_used = st.number_input("Reactions Used", min_value=0, step=1)
-    new_left = new_total - new_used
     new_location = st.text_input("Storage Location")
-    new_cassette = st.text_input("Cassetto")
 
     submitted = st.form_submit_button("Add Reagent")
 
     if submitted:
-        new_row = {
-            "Reagent Type": new_type,
-            "Supplier": new_supplier,
-            "Reagent Name": new_name,
-            "Lot Number": new_lot,
-            "Expiry Date": new_expiry,
-            "Total Reactions": new_total,
-            "Reactions Used": new_used,
-            "Reactions Available": new_left,
-            "Storage Location": new_location,
-            "Cassetto": new_cassette
-        }
+        new_row = {"Reagent Type": new_type,
+                   "Supplier": new_supplier,
+                   "Reagent Name": new_name,
+                   "Lot Number": new_lot,
+                   "Expiry Date": new_expiry,
+                   "Storage Location": new_location}
 
         new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
         st.session_state['reagents_df'] = new_df
@@ -205,26 +158,16 @@ if len(rows_to_edit) == 1:
         edit_name = st.text_input("Reagent Name", value=str(existing_row['Reagent Name']))
         edit_lot = st.text_input("Lot Number", value=str(existing_row['Lot Number']))
         edit_expiry = st.text_input("Expiry Date", value=str(existing_row['Expiry Date']))
-        edit_total = st.number_input("Total Reactions", min_value=0, value=int(existing_row.get('Total Reactions', 0)), step=1)
-        edit_used = st.number_input("Reactions Used", min_value=0, value=int(existing_row.get('Reactions Used', 0)), step=1)
-        edit_left = edit_total - edit_used
         edit_location = st.text_input("Storage Location", value=str(existing_row['Storage Location']))
-        edit_cassette = st.text_input("Cassetto", value=str(existing_row.get('Cassetto', '')))
 
         submitted = st.form_submit_button("Update Reagent")
         if submitted:
-            updated_row = {
-                "Reagent Type": edit_type,
-                "Supplier": edit_supplier,
-                "Reagent Name": edit_name,
-                "Lot Number": edit_lot,
-                "Expiry Date": edit_expiry,
-                "Total Reactions": edit_total,
-                "Reactions Used": edit_used,
-                "Reactions Available": edit_left,
-                "Storage Location": edit_location,
-                "Cassetto": edit_cassette
-            }
+            updated_row = {"Reagent Type": edit_type,
+                           "Supplier": edit_supplier,
+                           "Reagent Name": edit_name,
+                           "Lot Number": edit_lot,
+                           "Expiry Date": edit_expiry,
+                           "Storage Location": edit_location}
 
             for key, value in updated_row.items():
                 st.session_state['reagents_df'].at[edit_index, key] = value
@@ -237,3 +180,4 @@ elif len(rows_to_edit) == 0:
     st.info("No record selected. Please refine your criteria.")
 else:
     st.warning(f"⚠️ {len(rows_to_edit)} records match the criteria. Please refine to exactly one.")
+
