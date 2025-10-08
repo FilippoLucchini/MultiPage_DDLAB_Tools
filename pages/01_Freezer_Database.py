@@ -296,23 +296,24 @@ edit_cols = st.columns(len(EDIT_FIELDS))
 
 st.write("### 1. Select the single sample you wish to edit:")
 
+filtered_df = df.copy()  # DataFrame dinamico che si restringe a ogni selezione
+
 for i, field in enumerate(EDIT_FIELDS):
-    unique_values = ['-- Select a Value --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    # Calcola i valori validi per questo campo in base alle scelte precedenti
+    possible_values = sorted(filtered_df[field].dropna().astype(str).unique().tolist())
+    possible_values = ['-- Select a Value --'] + possible_values
+
     with edit_cols[i]:
         selected_value = st.selectbox(
             f"Filter by {field}:",
-            unique_values,
+            possible_values,
             key=f"edit_filter_by_{field}"
         )
         selected_edit_criteria[field] = selected_value
 
-# Apply filter to find rows to edit
-combined_edit_filter = pd.Series([True] * len(df))
-for field, value in selected_edit_criteria.items():
-    if value != '-- Select a Value --':
-        combined_edit_filter &= (df[field].astype(str) == value) 
-        
-rows_to_edit = df[combined_edit_filter]
+    # Applica il filtro per restringere i valori per i campi successivi
+    if selected_value != '-- Select a Value_
+
 
 # Check if a single row is selected
 if len(rows_to_edit) == 1:
@@ -429,6 +430,7 @@ else:
     st.warning(f"⚠️ **{len(rows_to_edit)}** samples match the current criteria. Please refine your selection to match exactly ONE sample to enable editing.")
 
 # ----------------------------------------------------------------------
+
 
 
 
