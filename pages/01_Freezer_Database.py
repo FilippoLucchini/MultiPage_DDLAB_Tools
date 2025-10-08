@@ -37,49 +37,92 @@ df = st.session_state['data_df']
 st.title("DDLAB Freezer Database Management Tool")
 
 # ======================================================================
-# --- MULTI-CRITERIA SEARCH (NEW SECTION) ---
+# --- MULTI-CRITERIA SEARCH (UPDATED: DYNAMIC & RANGE-AWARE) ---
 # ======================================================================
 st.header("Search Sample")
 
 # Define the fields available for searching
-SEARCH_FIELDS = ["Freezer Name", "Freezer Location", "Cassetto", "Project", "Type_Of_Sample", "Sample Batch", "Samples_ID_In_Batch"]
+SEARCH_FIELDS = ["Freezer Name", "Freezer Location", "Cassetto", "Project", "Type_Of_Sample", "Sample Batch"]
 
 selected_search_criteria = {}
 
 st.write("### Choose a combination of criteria to filter by:")
+
 # Create columns to display the select boxes
 cols = st.columns(len(SEARCH_FIELDS))
 
-filtered_search_df = df.copy()  # DataFrame che si restringe dinamicamente
-selected_search_criteria = {}
-
 for i, field in enumerate(SEARCH_FIELDS):
-    # Calcola i valori possibili in base alle scelte precedenti
-    possible_values = sorted(filtered_search_df[field].dropna().astype(str).unique().tolist())
-    possible_values = ['-- All Samples --'] + possible_values
-    
+    unique_values = ['-- All Samples --'] + sorted(df[field].dropna().astype(str).unique().tolist())
     with cols[i]:
         selected_value = st.selectbox(
             f"Select {field}:",
-            possible_values,
+            unique_values,
             key=f"search_filter_by_{field}"
         )
         selected_search_criteria[field] = selected_value
-    
-    # Restringi i valori per i campi successivi
-    if selected_value != '-- All Samples --':
-        filtered_search_df = filtered_search_df[filtered_search_df[field].astype(str) == selected_value]
 
-# Dopo il ciclo, i risultati corrispondono al DataFrame filtrato
-search_results = filtered_search_df
+# 🔍 Campo aggiuntivo per la ricerca per Sample ID anche dentro range
+import re
 
-# Display the search results
-if st.button("Apply Search Filters"):
-    if search_results.empty:
-        st.warning("⚠️ No samples matched the selected criteria.")
+sample_id_search = st.text_input(
+    "🔎 Search by Sample ID (within ranges):",
+    placeholder="e.g. M2423"
+)
+
+def id_in_range(id_value, range_value):
+    """
+    Verifica se un ID (es. 'M2423') rientra in un range come 'M2400-M2450'.
+    """
+    if not isinstance(range_value, str) or pd.isna(range_value):
+        return False
+
+    id_value = str(id_value).strip().upper()
+    range_value = range_value.strip().upper()
+
+    match_id = re.match(r"([A-Z]+)(\d+)", id_value)
+    if not match_id:
+        return False
+    id_prefix, id_num = match_id.groups()
+    id_num = int(id_num)
+
+    if "-" in range_value:
+        parts = range_value.split("-")
+        if len(parts) != 2:
+            return False
+        start, end = parts
+        match_start = re.match(r"([A-Z]+)(\d+)", start)
+        match_end = re.match(r"([A-Z]+)(\d+)", end)
+        if not match_start or not match_end:
+            return False
+        prefix_start, num_start = match_start.groups()
+        prefix_end, num_end = match_end.groups()
+        if prefix_start != id_prefix or prefix_end != id_prefix:
+            return False
+        return int(num_start) <= id_num <= int(num_end)
     else:
-        st.success(f"🔍 Found **{len(search_results)}** matching sample(s):")
-        st.dataframe(search_results)
+        return id_value == range_value.strip()
+
+# --- FILTRAGGIO DINAMICO ---
+combined_search_filter = pd.Series([True] * len(df))
+
+for field, value in selected_search_criteria.items():
+    if value != '-- All Samples --':
+        combined_search_filter &= (df[field].astype(str) == value)
+
+if sample_id_search.strip():
+    combined_search_filter &= df["Samples_ID_In_Batch"].apply(lambda x: id_in_range(sample_id_search, x))
+
+search_results = df[combined_search_filter]
+
+# --- RISULTATI DINAMICI ---
+st.write("### Search Results:")
+
+if search_results.empty:
+    st.warning("⚠️ No samples matched the selected criteria.")
+else:
+    st.success(f"🔍 Found **{len(search_results)}** matching sample(s):")
+    st.dataframe(search_results, use_container_width=True)
+
 
 # ----------------------------------------------------------------------
 
@@ -435,6 +478,7 @@ else:
     st.warning(f"⚠️ **{len(rows_to_edit)}** samples match the current criteria. Please refine your selection to match exactly ONE sample to enable editing.")
 
 # ----------------------------------------------------------------------
+
 
 
 
