@@ -134,20 +134,31 @@ st.header("Edit Plastic Item")
 
 EDIT_FIELDS = ["Plastic Type", "Catalog Number", "Supplier"]
 selected_edit_criteria = {}
-cols = st.columns(len(EDIT_FIELDS))
+edit_cols = st.columns(len(EDIT_FIELDS))
+
+st.write("### 1. Select the single sample you wish to edit:")
+
+filtered_df = df.copy()  # DataFrame dinamico che si restringe a ogni selezione
 
 for i, field in enumerate(EDIT_FIELDS):
-    unique_values = ['-- Select --'] + sorted(df[field].dropna().astype(str).unique().tolist())
-    with cols[i]:
-        selected_value = st.selectbox(f"Filter by {field}:", unique_values, key=f"edit_{field}")
+    # Calcola i valori validi per questo campo in base alle scelte precedenti
+    possible_values = sorted(filtered_df[field].dropna().astype(str).unique().tolist())
+    possible_values = ['-- Select a Value --'] + possible_values
+
+    with edit_cols[i]:
+        selected_value = st.selectbox(
+            f"Filter by {field}:",
+            possible_values,
+            key=f"edit_filter_by_{field}"
+        )
         selected_edit_criteria[field] = selected_value
 
-combined_edit_filter = pd.Series([True] * len(df))
-for field, value in selected_edit_criteria.items():
-    if value != '-- Select --':
-        combined_edit_filter &= (df[field].astype(str) == value)
+    # Applica il filtro per restringere i valori per i campi successivi
+    if selected_value != '-- Select a Value --':
+        filtered_df = filtered_df[filtered_df[field].astype(str) == selected_value]
 
-rows_to_edit = df[combined_edit_filter]
+# Alla fine, le righe candidate da modificare sono quelle del DataFrame filtrato
+rows_to_edit = filtered_df
 
 if len(rows_to_edit) == 1:
     st.success("✅ One record selected for editing.")
