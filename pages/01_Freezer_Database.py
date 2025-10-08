@@ -71,36 +71,53 @@ sample_id_search = st.text_input(
 
 def id_in_range(id_value, range_value):
     """
-    Verifica se un ID (es. 'M2423') rientra in un range come 'M2400-M2450'.
+    Verifica se un ID (es. 'M2423', 'AA10', '1023') rientra in un range come 'M2400-M2450', 'AA1-AA50', '100-200', ecc.
+    Gestisce ID con 0, 1 o più lettere di prefisso.
     """
-    if not isinstance(range_value, str) or pd.isna(range_value):
+    if not isinstance(range_value, str) or pd.isna(range_value) or not str(range_value).strip():
         return False
 
     id_value = str(id_value).strip().upper()
     range_value = range_value.strip().upper()
 
-    match_id = re.match(r"([A-Z]+)(\d+)", id_value)
+    # Estrai prefisso (lettere) e numero (cifre) dell'ID cercato
+    match_id = re.match(r"([A-Z]*)(\d+)", id_value)
     if not match_id:
         return False
     id_prefix, id_num = match_id.groups()
     id_num = int(id_num)
 
+    # Caso: range (es. "M2400-M2450" oppure "AA1-AA50" oppure "100-200")
     if "-" in range_value:
         parts = range_value.split("-")
         if len(parts) != 2:
             return False
-        start, end = parts
-        match_start = re.match(r"([A-Z]+)(\d+)", start)
-        match_end = re.match(r"([A-Z]+)(\d+)", end)
+        start, end = parts[0].strip(), parts[1].strip()
+
+        match_start = re.match(r"([A-Z]*)(\d+)", start)
+        match_end = re.match(r"([A-Z]*)(\d+)", end)
         if not match_start or not match_end:
             return False
+
         prefix_start, num_start = match_start.groups()
         prefix_end, num_end = match_end.groups()
-        if prefix_start != id_prefix or prefix_end != id_prefix:
-            return False
-        return int(num_start) <= id_num <= int(num_end)
+
+        num_start, num_end = int(num_start), int(num_end)
+
+        # Se entrambi hanno prefisso → confronta prefissi e range numerico
+        if prefix_start or prefix_end:
+            if prefix_start != prefix_end or prefix_start != id_prefix:
+                return False
+        # Se nessuno ha prefisso → confronta solo i numeri
+        elif id_prefix:
+            return False  # L'ID cercato ha lettere ma il range no
+
+        return num_start <= id_num <= num_end
+
     else:
-        return id_value == range_value.strip()
+        # Caso: singolo ID (es. "M2401", "AA12", "123")
+        return id_value == range_value
+
 
 # --- FILTRAGGIO DINAMICO ---
 combined_search_filter = pd.Series([True] * len(df))
@@ -478,6 +495,7 @@ else:
     st.warning(f"⚠️ **{len(rows_to_edit)}** samples match the current criteria. Please refine your selection to match exactly ONE sample to enable editing.")
 
 # ----------------------------------------------------------------------
+
 
 
 
