@@ -18,7 +18,7 @@ def load_data(path):
         columns = [
             "Reagent Type", "Supplier", "Reagent Name", "Lot Number", "Expiry Date",
             "Total Reactions", "Reactions Used", "Reactions Available",
-            "Storage Location", "Cassette"
+            "Storage Location", "Cassetto"
         ]
         df_new = pd.DataFrame(columns=columns)
         df_new.to_excel(path, sheet_name="Template", index=False)
@@ -39,7 +39,7 @@ st.header("Search Reagents")
 
 SEARCH_FIELDS = [
     "Reagent Type", "Supplier", "Reagent Name",
-    "Lot Number", "Storage Location", "Cassette"
+    "Lot Number", "Storage Location", "Cassetto"
 ]
 selected_search_criteria = {}
 
@@ -81,7 +81,7 @@ with st.form("add_form"):
     new_used = st.number_input("Reactions Used", min_value=0, step=1)
     new_left = new_total - new_used
     new_location = st.text_input("Storage Location")
-    new_cassette = st.text_input("Cassette")
+    new_cassette = st.text_input("Cassetto")
 
     submitted = st.form_submit_button("Add Reagent")
 
@@ -96,7 +96,7 @@ with st.form("add_form"):
             "Reactions Used": new_used,
             "Reactions Available": new_left,
             "Storage Location": new_location,
-            "Cassette": new_cassette
+            "Cassetto": new_cassette
         }
 
         new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
@@ -179,7 +179,7 @@ if len(rows_to_edit) == 1:
         edit_used = st.number_input("Reactions Used", min_value=0, value=int(existing_row.get('Reactions Used', 0)), step=1)
         edit_left = edit_total - edit_used
         edit_location = st.text_input("Storage Location", value=str(existing_row['Storage Location']))
-        edit_cassette = st.text_input("Cassette", value=str(existing_row.get('Cassette', '')))
+        edit_cassette = st.text_input("Cassetto", value=str(existing_row.get('Cassetto', '')))
 
         submitted = st.form_submit_button("Update Reagent")
         if submitted:
@@ -193,7 +193,7 @@ if len(rows_to_edit) == 1:
                 "Reactions Used": edit_used,
                 "Reactions Available": edit_left,
                 "Storage Location": edit_location,
-                "Cassette": edit_cassette
+                "Cassetto": edit_cassette
             }
 
             for key, value in updated_row.items():
