@@ -312,7 +312,12 @@ for i, field in enumerate(EDIT_FIELDS):
         selected_edit_criteria[field] = selected_value
 
     # Applica il filtro per restringere i valori per i campi successivi
-    if selected_value != '-- Select a Value_
+    if selected_value != '-- Select a Value --':
+        filtered_df = filtered_df[filtered_df[field].astype(str) == selected_value]
+
+# Alla fine, le righe candidate da modificare sono quelle del DataFrame filtrato
+rows_to_edit = filtered_df
+
 
 
 # Check if a single row is selected
@@ -430,6 +435,7 @@ else:
     st.warning(f"⚠️ **{len(rows_to_edit)}** samples match the current criteria. Please refine your selection to match exactly ONE sample to enable editing.")
 
 # ----------------------------------------------------------------------
+
 
 
 
