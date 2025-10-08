@@ -50,28 +50,28 @@ st.write("### Choose a combination of criteria to filter by:")
 # Create columns to display the select boxes
 cols = st.columns(len(SEARCH_FIELDS))
 
+filtered_search_df = df.copy()  # DataFrame che si restringe dinamicamente
+selected_search_criteria = {}
+
 for i, field in enumerate(SEARCH_FIELDS):
-    # Get unique values, ensuring no NaN values are passed to sort, and prepend a 'wildcard' option
-    unique_values = ['-- All Samples --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+    # Calcola i valori possibili in base alle scelte precedenti
+    possible_values = sorted(filtered_search_df[field].dropna().astype(str).unique().tolist())
+    possible_values = ['-- All Samples --'] + possible_values
     
     with cols[i]:
-        # Use a unique key for each selectbox
         selected_value = st.selectbox(
             f"Select {field}:",
-            unique_values,
+            possible_values,
             key=f"search_filter_by_{field}"
         )
         selected_search_criteria[field] = selected_value
+    
+    # Restringi i valori per i campi successivi
+    if selected_value != '-- All Samples --':
+        filtered_search_df = filtered_search_df[filtered_search_df[field].astype(str) == selected_value]
 
-# Filter the DataFrame based on the selected criteria
-combined_search_filter = pd.Series([True] * len(df))
-
-for field, value in selected_search_criteria.items():
-    if value != '-- All Samples --':
-        # Apply the filter. Note: astype(str) is used for consistency with selectbox options.
-        combined_search_filter &= (df[field].astype(str) == value)
-
-search_results = df[combined_search_filter]
+# Dopo il ciclo, i risultati corrispondono al DataFrame filtrato
+search_results = filtered_search_df
 
 # Display the search results
 if st.button("Apply Search Filters"):
@@ -435,6 +435,7 @@ else:
     st.warning(f"⚠️ **{len(rows_to_edit)}** samples match the current criteria. Please refine your selection to match exactly ONE sample to enable editing.")
 
 # ----------------------------------------------------------------------
+
 
 
 
