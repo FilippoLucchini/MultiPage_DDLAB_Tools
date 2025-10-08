@@ -33,7 +33,7 @@ st.title("DDLAB Plastics Database Management Tool")
 # ======================================================================
 st.header("Search Plastics")
 
-SEARCH_FIELDS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Box 96", "Box Location"]
+SEARCH_FIELDS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Box Location"]
 selected_search_criteria = {}
 
 st.write("### Choose a combination of criteria to filter by:")
