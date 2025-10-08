@@ -83,7 +83,17 @@ if st.button("Apply Search Filters"):
         st.warning("⚠️ No reagents matched the selected criteria.")
     else:
         st.success(f"🔍 Found **{len(search_results)}** matching reagent(s):")
-        st.dataframe(search_results)
+
+        # Reorder columns for clarity, if they exist
+        display_cols = [
+            "Reagent Type", "Supplier", "Reagent Name", "Lot Number", "Expiry Date",
+            "Total Reactions", "Reactions Used", "Reactions Available",
+            "Storage Location", "Cassette"
+        ]
+        display_cols = [c for c in display_cols if c in search_results.columns]
+
+        st.dataframe(search_results[display_cols])
+
 
 
 # ======================================================================
