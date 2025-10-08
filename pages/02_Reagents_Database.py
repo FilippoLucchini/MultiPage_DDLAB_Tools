@@ -38,8 +38,9 @@ st.title("DDLAB Reagents Database Management Tool")
 st.header("Search Reagents")
 
 SEARCH_FIELDS = [
-    "Reagent Type", "Supplier", "Reagent Name",
-    "Lot Number", "Storage Location", "Cassetto"
+    "Reagent Type", "Supplier", "Reagent Name", "Lot Number",
+    "Total Reactions", "Reactions Used", "Reactions Available",
+    "Storage Location", "Cassetto"
 ]
 selected_search_criteria = {}
 
@@ -47,14 +48,32 @@ st.write("### Choose a combination of criteria to filter by:")
 cols = st.columns(len(SEARCH_FIELDS))
 
 for i, field in enumerate(SEARCH_FIELDS):
-    unique_values = ['-- All --'] + sorted(df[field].dropna().astype(str).unique().tolist())
-    with cols[i]:
-        selected_value = st.selectbox(f"Select {field}:", unique_values, key=f"search_{field}")
-        selected_search_criteria[field] = selected_value
+    if field in df.columns:
+        # Detect numeric vs string field
+        if pd.api.types.is_numeric_dtype(df[field]):
+            min_val = int(df[field].min()) if not df[field].isna().all() else 0
+            max_val = int(df[field].max()) if not df[field].isna().all() else 0
+            with cols[i]:
+                selected_min, selected_max = st.slider(
+                    f"{field} range:",
+                    min_value=min_val, max_value=max_val,
+                    value=(min_val, max_val), key=f"search_slider_{field}"
+                )
+                selected_search_criteria[field] = (selected_min, selected_max)
+        else:
+            unique_values = ['-- All --'] + sorted(df[field].dropna().astype(str).unique().tolist())
+            with cols[i]:
+                selected_value = st.selectbox(f"Select {field}:", unique_values, key=f"search_{field}")
+                selected_search_criteria[field] = selected_value
 
+# --- Apply filters ---
 combined_search_filter = pd.Series([True] * len(df))
+
 for field, value in selected_search_criteria.items():
-    if value != '-- All --':
+    if isinstance(value, tuple):  # numeric range
+        min_val, max_val = value
+        combined_search_filter &= df[field].between(min_val, max_val, inclusive="both")
+    elif value != '-- All --':
         combined_search_filter &= (df[field].astype(str) == value)
 
 search_results = df[combined_search_filter]
@@ -65,6 +84,7 @@ if st.button("Apply Search Filters"):
     else:
         st.success(f"🔍 Found **{len(search_results)}** matching reagent(s):")
         st.dataframe(search_results)
+
 
 # ======================================================================
 # --- ADD NEW ENTRY ---
