@@ -85,21 +85,23 @@ with st.form("add_form"):
 
     submitted = st.form_submit_button("Add Plastic")
 
-    if submitted:
-        new_row = {"Plastic Type": new_type,
-                   "Size": new_size,
-                   "Catalog Number": new_catalog,
-                   "Supplier": new_supplier,
-                   "Quantità": new_qty,
-                   "Box 96": new_box,
-                   "Box Location": new_location}
+   if submitted:
+    new_row = {
+        "Plastic Type": new_type,
+        "Size": new_size,
+        "Catalog Number": new_catalog,
+        "Supplier": new_supplier,
+        "Quantità": new_qty,
+        "Box 96": new_box,
+        "Box Location": new_location
+    }
 
-        new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        st.session_state['data_df'] = new_df
-        new_df.to_excel(file_path, sheet_name="Template", index=False)
+    new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    st.session_state['plastics_df'] = new_df  # ✅ keep consistent
+    new_df.to_excel(file_path, sheet_name="Template", index=False)
 
-        st.success("✅ Plastic item added! Refreshing database...")
-        st.rerun()
+    st.success("✅ Plastic item added! Refreshing database...")
+    st.rerun()
 
 # ======================================================================
 # --- DELETE ENTRY ---
@@ -131,11 +133,12 @@ else:
     st.dataframe(rows_to_delete)
 
     if st.button("Confirm Deletion 🗑️"):
-        new_df = df[~combined_filter]
-        st.session_state['data_df'] = new_df
-        new_df.to_excel(file_path, sheet_name="Template", index=False)
-        st.success(f"✅ Deleted {num_rows_to_delete} record(s). Refreshing database...")
-        st.rerun()
+    new_df = df[~combined_filter]
+    st.session_state['plastics_df'] = new_df  # ✅ fix here
+    new_df.to_excel(file_path, sheet_name="Template", index=False)
+    st.success(f"✅ Deleted {num_rows_to_delete} record(s). Refreshing database...")
+    st.rerun()
+
 
 # ======================================================================
 # --- EDIT ENTRY ---
@@ -186,19 +189,23 @@ if len(rows_to_edit) == 1:
 
         submitted = st.form_submit_button("Update Plastic")
         if submitted:
-            updated_row = {"Plastic Type": edit_type,
-                           "Size": edit_size,
-                           "Catalog Number": edit_catalog,
-                           "Supplier": edit_supplier,
-                           "Quantità": edit_qty,
-                           "Box 96": edit_box,
-                           "Box Location": edit_location}
+    updated_row = {
+        "Plastic Type": edit_type,
+        "Size": edit_size,
+        "Catalog Number": edit_catalog,
+        "Supplier": edit_supplier,
+        "Quantità": edit_qty,
+        "Box 96": edit_box,
+        "Box Location": edit_location
+    }
 
-            for key, value in updated_row.items():
-                st.session_state['data_df'].at[edit_index, key] = value
+    for key, value in updated_row.items():
+        st.session_state['plastics_df'].at[edit_index, key] = value  # ✅ fix here
 
-            st.session_state['data_df'].to_excel(file_path, sheet_name="Template", index=False)
-            st.success("✅ Record updated! Refreshing database...")
+    st.session_state['plastics_df'].to_excel(file_path, sheet_name="Template", index=False)
+    st.success("✅ Record updated! Refreshing database...")
+    st.rerun()
+ Record updated! Refreshing database...")
             st.rerun()
 
 elif len(rows_to_edit) == 0:
