@@ -14,14 +14,15 @@ def load_data(path):
     if os.path.exists(path):
         return pd.read_excel(path, sheet_name="Template")
     else:
-        # Create an empty DataFrame if the file doesn't exist
         columns = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Quantità", "Box 96", "Box Location"]
         df_new = pd.DataFrame(columns=columns)
         df_new.to_excel(path, sheet_name="Template", index=False)
         return df_new
 
 # --- INITIAL DATA LOAD ---
-st.session_state['plastics_df'] = load_data(file_path)
+if 'plastics_df' not in st.session_state:
+    st.session_state['plastics_df'] = load_data(file_path)
+
 df = st.session_state['plastics_df']
 
 st.title("DDLAB Plastics Database Management Tool")
@@ -40,7 +41,6 @@ filtered_search_df = df.copy()
 selected_search_criteria = {}
 
 for i, field in enumerate(SEARCH_FIELDS):
-    # Determine possible values based on previous selections
     possible_values = sorted(filtered_search_df[field].dropna().astype(str).unique().tolist())
     possible_values = ['-- All Samples --'] + possible_values
     
@@ -52,7 +52,6 @@ for i, field in enumerate(SEARCH_FIELDS):
         )
         selected_search_criteria[field] = selected_value
     
-    # Filter progressively
     if selected_value != '-- All Samples --':
         filtered_search_df = filtered_search_df[filtered_search_df[field].astype(str) == selected_value]
 
@@ -93,8 +92,11 @@ with st.form("add_form"):
         }
 
         new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        st.session_state['plastics_df'] = new_df
         new_df.to_excel(file_path, sheet_name="Template", index=False)
+
+        # 🔁 Refresh data cache and session
+        load_data.clear()
+        st.session_state['plastics_df'] = load_data(file_path)
 
         st.success("✅ Plastic item added! Refreshing database...")
         st.rerun()
@@ -130,8 +132,12 @@ else:
 
     if st.button("Confirm Deletion 🗑️"):
         new_df = df[~combined_filter]
-        st.session_state['plastics_df'] = new_df
         new_df.to_excel(file_path, sheet_name="Template", index=False)
+
+        # 🔁 Refresh data cache and session
+        load_data.clear()
+        st.session_state['plastics_df'] = load_data(file_path)
+
         st.success(f"✅ Deleted {num_rows_to_delete} record(s). Refreshing database...")
         st.rerun()
 
@@ -192,9 +198,14 @@ if len(rows_to_edit) == 1:
             }
 
             for key, value in updated_row.items():
-                st.session_state['plastics_df'].at[edit_index, key] = value
+                df.at[edit_index, key] = value
 
-            st.session_state['plastics_df'].to_excel(file_path, sheet_name="Template", index=False)
+            df.to_excel(file_path, sheet_name="Template", index=False)
+
+            # 🔁 Refresh data cache and session
+            load_data.clear()
+            st.session_state['plastics_df'] = load_data(file_path)
+
             st.success("✅ Record updated! Refreshing database...")
             st.rerun()
 
@@ -202,3 +213,4 @@ elif len(rows_to_edit) == 0:
     st.info("No record selected. Please refine your criteria.")
 else:
     st.warning(f"⚠️ {len(rows_to_edit)} records match the criteria. Please refine to exactly one.")
+
