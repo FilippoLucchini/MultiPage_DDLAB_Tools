@@ -20,10 +20,8 @@ def load_data(path):
         df_new.to_excel(path, sheet_name="Template", index=False)
         return df_new
 
-# --- INITIAL DATA LOAD & SESSION STATE SETUP ---
-if 'plastics_df' not in st.session_state:
-    st.session_state['plastics_df'] = load_data(file_path)
-
+# --- INITIAL DATA LOAD ---
+st.session_state['plastics_df'] = load_data(file_path)
 df = st.session_state['plastics_df']
 
 st.title("DDLAB Plastics Database Management Tool")
@@ -34,16 +32,15 @@ st.title("DDLAB Plastics Database Management Tool")
 st.header("Search Plastics")
 
 SEARCH_FIELDS = ["Plastic Type", "Size", "Catalog Number", "Supplier", "Box Location"]
-selected_search_criteria = {}
 
 st.write("### Choose a combination of criteria to filter by:")
 cols = st.columns(len(SEARCH_FIELDS))
 
-filtered_search_df = df.copy()  # DataFrame che si restringe dinamicamente
+filtered_search_df = df.copy()
 selected_search_criteria = {}
 
 for i, field in enumerate(SEARCH_FIELDS):
-    # Calcola i valori possibili in base alle scelte precedenti
+    # Determine possible values based on previous selections
     possible_values = sorted(filtered_search_df[field].dropna().astype(str).unique().tolist())
     possible_values = ['-- All Samples --'] + possible_values
     
@@ -55,11 +52,10 @@ for i, field in enumerate(SEARCH_FIELDS):
         )
         selected_search_criteria[field] = selected_value
     
-    # Restringi i valori per i campi successivi
+    # Filter progressively
     if selected_value != '-- All Samples --':
         filtered_search_df = filtered_search_df[filtered_search_df[field].astype(str) == selected_value]
 
-# Dopo il ciclo, i risultati corrispondono al DataFrame filtrato
 search_results = filtered_search_df
 
 if st.button("Apply Search Filters"):
@@ -85,23 +81,23 @@ with st.form("add_form"):
 
     submitted = st.form_submit_button("Add Plastic")
 
-   if submitted:
-    new_row = {
-        "Plastic Type": new_type,
-        "Size": new_size,
-        "Catalog Number": new_catalog,
-        "Supplier": new_supplier,
-        "Quantità": new_qty,
-        "Box 96": new_box,
-        "Box Location": new_location
-    }
+    if submitted:
+        new_row = {
+            "Plastic Type": new_type,
+            "Size": new_size,
+            "Catalog Number": new_catalog,
+            "Supplier": new_supplier,
+            "Quantità": new_qty,
+            "Box 96": new_box,
+            "Box Location": new_location
+        }
 
-    new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    st.session_state['plastics_df'] = new_df  # ✅ keep consistent
-    new_df.to_excel(file_path, sheet_name="Template", index=False)
+        new_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        st.session_state['plastics_df'] = new_df
+        new_df.to_excel(file_path, sheet_name="Template", index=False)
 
-    st.success("✅ Plastic item added! Refreshing database...")
-    st.rerun()
+        st.success("✅ Plastic item added! Refreshing database...")
+        st.rerun()
 
 # ======================================================================
 # --- DELETE ENTRY ---
@@ -133,12 +129,11 @@ else:
     st.dataframe(rows_to_delete)
 
     if st.button("Confirm Deletion 🗑️"):
-    new_df = df[~combined_filter]
-    st.session_state['plastics_df'] = new_df  # ✅ fix here
-    new_df.to_excel(file_path, sheet_name="Template", index=False)
-    st.success(f"✅ Deleted {num_rows_to_delete} record(s). Refreshing database...")
-    st.rerun()
-
+        new_df = df[~combined_filter]
+        st.session_state['plastics_df'] = new_df
+        new_df.to_excel(file_path, sheet_name="Template", index=False)
+        st.success(f"✅ Deleted {num_rows_to_delete} record(s). Refreshing database...")
+        st.rerun()
 
 # ======================================================================
 # --- EDIT ENTRY ---
@@ -151,10 +146,9 @@ edit_cols = st.columns(len(EDIT_FIELDS))
 
 st.write("### 1. Select the single sample you wish to edit:")
 
-filtered_df = df.copy()  # DataFrame dinamico che si restringe a ogni selezione
+filtered_df = df.copy()
 
 for i, field in enumerate(EDIT_FIELDS):
-    # Calcola i valori validi per questo campo in base alle scelte precedenti
     possible_values = sorted(filtered_df[field].dropna().astype(str).unique().tolist())
     possible_values = ['-- Select a Value --'] + possible_values
 
@@ -166,11 +160,9 @@ for i, field in enumerate(EDIT_FIELDS):
         )
         selected_edit_criteria[field] = selected_value
 
-    # Applica il filtro per restringere i valori per i campi successivi
     if selected_value != '-- Select a Value --':
         filtered_df = filtered_df[filtered_df[field].astype(str) == selected_value]
 
-# Alla fine, le righe candidate da modificare sono quelle del DataFrame filtrato
 rows_to_edit = filtered_df
 
 if len(rows_to_edit) == 1:
@@ -189,23 +181,21 @@ if len(rows_to_edit) == 1:
 
         submitted = st.form_submit_button("Update Plastic")
         if submitted:
-    updated_row = {
-        "Plastic Type": edit_type,
-        "Size": edit_size,
-        "Catalog Number": edit_catalog,
-        "Supplier": edit_supplier,
-        "Quantità": edit_qty,
-        "Box 96": edit_box,
-        "Box Location": edit_location
-    }
+            updated_row = {
+                "Plastic Type": edit_type,
+                "Size": edit_size,
+                "Catalog Number": edit_catalog,
+                "Supplier": edit_supplier,
+                "Quantità": edit_qty,
+                "Box 96": edit_box,
+                "Box Location": edit_location
+            }
 
-    for key, value in updated_row.items():
-        st.session_state['plastics_df'].at[edit_index, key] = value  # ✅ fix here
+            for key, value in updated_row.items():
+                st.session_state['plastics_df'].at[edit_index, key] = value
 
-    st.session_state['plastics_df'].to_excel(file_path, sheet_name="Template", index=False)
-    st.success("✅ Record updated! Refreshing database...")
-    st.rerun()
- Record updated! Refreshing database...")
+            st.session_state['plastics_df'].to_excel(file_path, sheet_name="Template", index=False)
+            st.success("✅ Record updated! Refreshing database...")
             st.rerun()
 
 elif len(rows_to_edit) == 0:
