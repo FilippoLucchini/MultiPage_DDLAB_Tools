@@ -23,9 +23,9 @@ if df.empty:
 orig_columns = list(df.columns)
 
 # --- Selezione colonna libreria + ordinamento ---
-allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit']]
 if not allowed_library_cols:
-    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit' è presente nel file.")
     st.stop()
 
 col_filt, col_sort = st.columns([1, 1])
@@ -68,11 +68,8 @@ for (pool, lane), grp in by:
             "Pool": pool,
             "Lane": lane,
             "Library_Type": libtype,
-            "n_samples": len(subgrp),
-            "%_Library_Lane (median)": safe_median(subgrp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan,
-            "RT/Tape_Ratio(median)": safe_median(subgrp[col_rt_tape]) if col_rt_tape else np.nan,
-            "RT/Qubit_Ratio(median)": safe_median(subgrp[col_rt_qubit]) if col_rt_qubit else np.nan,
-            "Conc_caricamento_1x (pM) (median)": safe_median(subgrp[col_conc_1x]) if col_conc_1x else np.nan
+            "%_Library_Lane": safe_median(subgrp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan,
+            "Conc_caricamento_1x (pM)": safe_median(subgrp[col_conc_1x]) if col_conc_1x else np.nan
         }
 
         if col_frag_prod and col_frag_assigned:
