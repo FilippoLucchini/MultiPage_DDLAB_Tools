@@ -59,10 +59,6 @@ if not allowed_library_cols:
     st.error("Nessuna delle colonne 'Type', 'Library_Kit' è presente nel file.")
     st.stop()
 
-library_col = st.selectbox("Colonna che contiene il tipo di libreria", allowed_library_cols)
-library_values = sorted(df[library_col].dropna().unique().tolist())
-chosen_library = st.selectbox("Scegli il tipo di libreria da analizzare", library_values)
-
 col_rt_tape = 'RT/Tape_Ratio' if 'RT/Tape_Ratio' in orig_columns else None
 col_rt_qubit = 'RT/Qubit_Ratio' if 'RT/Qubit_Ratio' in orig_columns else None
 col_conc_1x = 'Conc_caricamento_1x (pM)' if 'Conc_caricamento_1x (pM)' in orig_columns else None
