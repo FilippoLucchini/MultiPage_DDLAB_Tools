@@ -99,21 +99,19 @@ else:
 
 # Grafico Altair
 
-# Esplodi le librerie alternative
+# Prepara i dati esplosi
 exploded = []
 for _, row in result_df.iterrows():
     pool = row['Pool']
     lane = row['Lane']
     selected_pct = row['%_Library_Lane (median)']
     selected_type = chosen_library
-    # Aggiungi la libreria selezionata
     exploded.append({
         'Pool': pool,
         'Lane': lane,
         'Library': selected_type,
         'Median_%': selected_pct
     })
-    # Aggiungi le altre librerie
     summary = row['Altri tipi di libreria (mediana %_Library_Lane)']
     if summary:
         for part in summary.split(';'):
@@ -128,18 +126,23 @@ for _, row in result_df.iterrows():
 
 df_exploded = pd.DataFrame(exploded)
 
-# Grafico a barre impilate
-chart = alt.Chart(df_exploded).mark_bar().encode(
-    x=alt.X('Pool:N', title='Pool'),
-    y=alt.Y('Median_%:Q', title='Mediana % Library Lane'),
-    color=alt.Color('Library:N', title='Tipo di libreria'),
-    column=alt.Column('Lane:N', title='Lane'),
+# Seleziona la Lane da visualizzare
+lane_selected = st.selectbox("Seleziona una Lane da visualizzare", sorted(df_exploded['Lane'].unique()))
+filtered = df_exploded[df_exploded['Lane'] == lane_selected]
+
+# Grafico Altair compatto
+chart = alt.Chart(filtered).mark_bar().encode(
+    x=alt.X('Library:N', title='Tipo di libreria'),
+    y=alt.Y('Median_%:Q', title='Mediana %'),
+    color='Library:N',
+    column=alt.Column('Pool:N', title='Pool'),
     tooltip=['Pool', 'Lane', 'Library', 'Median_%']
 ).properties(
-    title='Distribuzione di tutti i tipi di libreria per Pool e Lane'
+    title=f'Distribuzione % per Lane {lane_selected}'
 )
 
 st.altair_chart(chart, use_container_width=True)
+
 
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
