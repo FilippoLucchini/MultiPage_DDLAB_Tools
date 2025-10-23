@@ -35,9 +35,9 @@ def safe_median(series):
     return float(np.nanmedian(vals)) if not vals.empty else np.nan
 
 lib_type_col_default = 'Library_Kit' if 'Library_Kit' in orig_columns else orig_columns[0]
-allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit']]
 if not allowed_library_cols:
-    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit' è presente nel file.")
     st.stop()
 
 library_col = st.selectbox("Colonna che contiene il tipo di libreria", allowed_library_cols)
