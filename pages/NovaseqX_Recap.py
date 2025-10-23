@@ -19,11 +19,12 @@ if uploaded is not None:
 else:
     df = load_data(default_path)
 
+df.columns = df.columns.str.strip()
+
 if df.empty:
     st.error("Il file caricato è vuoto o non contiene dati validi.")
     st.stop()
 
-df.columns = df.columns.str.strip()
 orig_columns = list(df.columns)
 st.sidebar.header("Colonne trovate")
 st.sidebar.write(orig_columns)
@@ -42,12 +43,12 @@ if first_col and first_col in df.columns:
     if df[first_col].dropna().empty:
         st.warning(f"La colonna '{first_col}' non contiene valori validi.")
         first_values = []
-else:
+    else:
         first_values = sorted(df[first_col].dropna().unique().tolist())
 else:
     st.warning("La colonna selezionata non è valida o non è presente nel file.")
     first_values = []
-    
+
 first_selected = st.multiselect(
     f"Valori per '{first_col}' (seleziona almeno uno)",
     first_values,
@@ -164,8 +165,8 @@ else:
 
     result_df = pd.DataFrame(groups).sort_values(by=["Pool", "Lane"])
     st.markdown("### Statistiche per pool & lane (mediane e riassunti)")
-      st.dataframe(result_df)
-    st.download_button(
+    st.dataframe(result_df)
+        st.download_button(
         "Scarica le statistiche (CSV)",
         data=result_df.to_csv(index=False).encode('utf-8'),
         file_name='library_stats.csv'
@@ -173,3 +174,4 @@ else:
 
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
+
