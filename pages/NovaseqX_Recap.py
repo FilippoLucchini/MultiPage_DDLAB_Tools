@@ -42,12 +42,12 @@ if first_col and first_col in df.columns:
     if df[first_col].dropna().empty:
         st.warning(f"La colonna '{first_col}' non contiene valori validi.")
         first_values = []
-    else:
+else:
         first_values = sorted(df[first_col].dropna().unique().tolist())
 else:
     st.warning("La colonna selezionata non è valida o non è presente nel file.")
     first_values = []
-
+    
 first_selected = st.multiselect(
     f"Valori per '{first_col}' (seleziona almeno uno)",
     first_values,
