@@ -21,6 +21,10 @@ else:
 
 df.columns = df.columns.str.strip()
 
+if df.empty:
+    st.error("Il file caricato è vuoto o non contiene dati validi.")
+    st.stop()
+
 # clean column names (keep originals but also provide safe lookup)
 orig_columns = list(df.columns)
 st.sidebar.header("Colonne trovate")
