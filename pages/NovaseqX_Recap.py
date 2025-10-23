@@ -152,7 +152,7 @@ if aggiorna:
             st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
         else:
             chart = alt.Chart(filtered).mark_arc().encode(
-                theta=alt.Theta(field="%_Library_Lane (median)", type="quantitative"),
+                theta=alt.Theta(field="%_Library_Lane", type="quantitative"),
                 color=alt.Color(field="Library_Type", type="nominal"),
                 tooltip=[
                     'Library_Type',
