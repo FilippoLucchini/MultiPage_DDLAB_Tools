@@ -117,33 +117,51 @@ for _, row in result_df.iterrows():
         for part in summary.split(';'):
             if ':' in part:
                 libtype, pct = part.split(':')
-                exploded.append({
-                    'Pool': pool,
-                    'Lane': lane,
-                    'Library': libtype.strip(),
-                    'Median_%': float(pct.strip().replace('%',''))
-                })
+                try:
+                    exploded.append({
+                        'Pool': pool,
+                        'Lane': lane,
+                        'Library': libtype.strip(),
+                        'Median_%': float(pct.strip().replace('%',''))
+                    })
+                except:
+                    continue  # ignora valori non convertibili
 
 df_exploded = pd.DataFrame(exploded)
 
-# Selezione Pool+Lane
-lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
-lane_selected = st.selectbox("Seleziona Pool + Lane", lane_options.apply(lambda x: f"{x['Pool']} - Lane {x['Lane']}", axis=1))
+# Verifica che ci siano dati
+if df_exploded.empty:
+    st.warning("Nessun dato disponibile per il grafico a torta.")
+else:
+    # Selezione Pool+Lane
+    lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
+    lane_labels = lane_options.apply(lambda x: f"{x['Pool']} - Lane {x['Lane']}", axis=1)
+    lane_selected = st.selectbox("Seleziona Pool + Lane", lane_labels)
 
-# Filtra i dati
-selected_pool, selected_lane = lane_selected.split(' - Lane ')
-filtered = df_exploded[(df_exploded['Pool'] == selected_pool) & (df_exploded['Lane'] == selected_lane)]
+    # Estrai Pool e Lane
+    try:
+        selected_pool, selected_lane = lane_selected.split(' - Lane ')
+        selected_lane = int(selected_lane)
+    except:
+        st.error("Errore nella selezione Pool+Lane.")
+        st.stop()
 
-# Grafico a torta
-chart = alt.Chart(filtered).mark_arc().encode(
-    theta=alt.Theta(field="Median_%", type="quantitative"),
-    color=alt.Color(field="Library", type="nominal"),
-    tooltip=['Library', 'Median_%']
-).properties(
-    title=f'Distribuzione % tipi di libreria — Pool {selected_pool}, Lane {selected_lane}'
-)
+    # Filtra i dati
+    filtered = df_exploded[(df_exploded['Pool'] == selected_pool) & (df_exploded['Lane'] == selected_lane)]
 
-st.altair_chart(chart, use_container_width=True)
+    if filtered.empty:
+        st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
+    else:
+        chart = alt.Chart(filtered).mark_arc().encode(
+            theta=alt.Theta(field="Median_%", type="quantitative"),
+            color=alt.Color(field="Library", type="nominal"),
+            tooltip=['Library', 'Median_%']
+        ).properties(
+            title=f'Distribuzione % tipi di libreria — Pool {selected_pool}, Lane {selected_lane}'
+        )
+
+        st.altair_chart(chart, use_container_width=True)
+
 
 
 
