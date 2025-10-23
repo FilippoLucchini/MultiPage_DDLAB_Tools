@@ -27,6 +27,25 @@ if df.empty:
 
 orig_columns = list(df.columns)
 
+# --- Selezione colonna libreria + ordinamento ---
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
+if not allowed_library_cols:
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
+    st.stop()
+
+col_filt, col_sort = st.columns([1, 1])
+
+with col_filt:
+    library_col = st.selectbox("Colonna che contiene il tipo di libreria", allowed_library_cols)
+    library_values = sorted(df[library_col].dropna().unique().tolist())
+    chosen_library = st.selectbox("Scegli il tipo di libreria da analizzare", library_values)
+
+with col_sort:
+    sort_options = ["Pool", "Lane", "Conc_caricamento_1x (pM) (median)"]
+    sort_by = st.selectbox("Ordina la tabella per", sort_options)
+    sort_ascending = st.radio("Ordine", ["Crescente", "Decrescente"]) == "Crescente"
+    aggiorna = st.button("🔄 Applica ordinamento")
+
 # --- SECTION 2: Library grouping & statistics ---
 st.markdown("Seleziona la colonna che identifica il tipo di libreria e il tipo specifico (es. 'Type' o 'Library_Kit'). Il codice raggrupperà per Pool e Lane.")
 
