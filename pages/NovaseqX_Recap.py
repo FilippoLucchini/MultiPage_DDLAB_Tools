@@ -133,49 +133,35 @@ df_exploded = pd.DataFrame(exploded)
 if df_exploded.empty:
     st.warning("Nessun dato disponibile per il grafico a torta.")
 else:
-    # Selezione Pool+Lane
-lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
-selected_row = st.selectbox("Seleziona Pool + Lane", lane_options.itertuples(index=False), format_func=lambda x: f"{x.Pool} - Lane {x.Lane}")
+    st.header("3) Grafico a torta per Pool + Lane")
 
-filtered = df_exploded[(df_exploded['Pool'] == selected_row.Pool) & (df_exploded['Lane'] == selected_row.Lane)]
-
-if filtered.empty:
-    st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
-else:
-    chart = alt.Chart(filtered).mark_arc().encode(
-        theta=alt.Theta(field="Median_%", type="quantitative"),
-        color=alt.Color(field="Library", type="nominal"),
-        tooltip=['Library', 'Median_%']
-    ).properties(
-        title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
+    # Selezione diretta Pool+Lane
+    lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
+    selected_row = st.selectbox(
+        "Seleziona Pool + Lane",
+        lane_options.itertuples(index=False),
+        format_func=lambda x: f"{x.Pool} - Lane {x.Lane}"
     )
-
-    st.altair_chart(chart, use_container_width=True)
-
-
-    # Estrai Pool e Lane
-try:
-    selected_pool, selected_lane = lane_selected.split(' - Lane ')
-    selected_lane = int(selected_lane)
-except:
-    st.error("Errore nella selezione Pool+Lane.")
-    st.stop()
 
     # Filtra i dati
-filtered = df_exploded[(df_exploded['Pool'] == selected_pool) & (df_exploded['Lane'] == selected_lane)]
+    filtered = df_exploded[
+        (df_exploded['Pool'] == selected_row.Pool) &
+        (df_exploded['Lane'] == selected_row.Lane)
+    ]
 
-if filtered.empty:
-    st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
-else:
-    chart = alt.Chart(filtered).mark_arc().encode(
-        theta=alt.Theta(field="Median_%", type="quantitative"),
-        color=alt.Color(field="Library", type="nominal"),
-        tooltip=['Library', 'Median_%']
-    ).properties(
-        title=f'Distribuzione % tipi di libreria — Pool {selected_pool}, Lane {selected_lane}'
-    )
+    if filtered.empty:
+        st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
+    else:
+        chart = alt.Chart(filtered).mark_arc().encode(
+            theta=alt.Theta(field="Median_%", type="quantitative"),
+            color=alt.Color(field="Library", type="nominal"),
+            tooltip=['Library', 'Median_%']
+        ).properties(
+            title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
+        )
 
-st.altair_chart(chart, use_container_width=True)
+        st.altair_chart(chart, use_container_width=True)
+
 
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
