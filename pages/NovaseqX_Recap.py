@@ -20,9 +20,9 @@ if df.empty:
     st.stop()
 
 # --- Selezione colonna libreria + ordinamento ---
-allowed_library_cols = [c for c in df.columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
+allowed_library_cols = [c for c in df.columns if c in ['Type', 'Library_Kit']]
 if not allowed_library_cols:
-    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit' è presente nel file.")
     st.stop()
 
 col_filt, col_sort = st.columns([1, 1])
@@ -63,11 +63,8 @@ for (pool, lane), grp in by:
             "Pool": pool,
             "Lane": lane,
             "Library_Type": libtype,
-            "n_samples": len(subgrp),
             "%_Library_Lane (median)": safe_median(subgrp.get(columns_map['% Library Lane'], np.nan)),
-            "RT/Tape_Ratio(median)": safe_median(subgrp.get(columns_map['RT/Tape'], np.nan)),
-            "RT/Qubit_Ratio(median)": safe_median(subgrp.get(columns_map['RT/Qubit'], np.nan)),
-            "Conc_caricamento_1x (pM) (median)": safe_median(subgrp.get(columns_map['Conc 1x'], np.nan))
+            "Conc_caricamento_1x (pM)": safe_median(subgrp.get(columns_map['Conc 1x'], np.nan))
         }
 
         # Altri tipi nella stessa Lane
@@ -85,9 +82,9 @@ for (pool, lane), grp in by:
         if columns_map['Fragments Produced'] in df.columns and columns_map['Fragments Assigned'] in df.columns:
             produced = pd.to_numeric(subgrp[columns_map['Fragments Produced']], errors='coerce').fillna(0).sum()
             assigned = pd.to_numeric(subgrp[columns_map['Fragments Assigned']], errors='coerce').fillna(0).sum()
-            entry['Fragments_Produced_vs_Assigned_percent'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
+            entry['% Production'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
         else:
-            entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
+            entry['% Production'] = np.nan
 
         groups.append(entry)
 
