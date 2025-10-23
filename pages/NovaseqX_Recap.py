@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import altair as alt
 
 st.set_page_config(layout="wide", page_title="NovaSeqX - Statistiche Librerie")
 
@@ -33,7 +32,7 @@ with col_filt:
     chosen_library = st.selectbox("Scegli il tipo di libreria da analizzare", library_values)
 
 with col_sort:
-    sort_options = ["Pool", "Lane", "Conc_caricamento_1x (pM) (median)"]
+    sort_options = ["Pool", "Pool (numerico)", "Lane", "Conc_caricamento_1x (pM) (median)"]
     sort_by = st.selectbox("Ordina la tabella per", sort_options)
     sort_ascending = st.radio("Ordine", ["Crescente", "Decrescente"]) == "Crescente"
     aggiorna = st.button("🔄 Applica ordinamento")
@@ -96,8 +95,13 @@ result_df = pd.DataFrame(groups)
 
 # --- Filtro e visualizzazione tabella filtrata ---
 if aggiorna:
-    result_df_filtered = result_df[result_df["Library_Type"] == chosen_library]
-    result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
+    result_df_filtered = result_df[result_df["Library_Type"] == chosen_library].copy()
+
+    if sort_by == "Pool (numerico)":
+        result_df_filtered['Pool_num'] = result_df_filtered['Pool'].str.extract(r'(\d+)').astype(float)
+        result_df_filtered = result_df_filtered.sort_values(by='Pool_num', ascending=sort_ascending)
+    else:
+        result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
 
     st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
     st.markdown("""
@@ -120,6 +124,6 @@ if aggiorna:
         data=result_df_filtered.to_csv(index=False).encode('utf-8'),
         file_name='library_stats_filtrate.csv'
     )
-
+    
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
