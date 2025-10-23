@@ -166,7 +166,7 @@ else:
     result_df = pd.DataFrame(groups).sort_values(by=["Pool", "Lane"])
     st.markdown("### Statistiche per pool & lane (mediane e riassunti)")
     st.dataframe(result_df)
-        st.download_button(
+    st.download_button(
         "Scarica le statistiche (CSV)",
         data=result_df.to_csv(index=False).encode('utf-8'),
         file_name='library_stats.csv'
