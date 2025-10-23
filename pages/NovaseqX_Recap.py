@@ -134,9 +134,24 @@ if df_exploded.empty:
     st.warning("Nessun dato disponibile per il grafico a torta.")
 else:
     # Selezione Pool+Lane
-    lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
-    lane_labels = lane_options.apply(lambda x: f"{x['Pool']} - Lane {x['Lane']}", axis=1)
-    lane_selected = st.selectbox("Seleziona Pool + Lane", lane_labels)
+lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
+selected_row = st.selectbox("Seleziona Pool + Lane", lane_options.itertuples(index=False), format_func=lambda x: f"{x.Pool} - Lane {x.Lane}")
+
+filtered = df_exploded[(df_exploded['Pool'] == selected_row.Pool) & (df_exploded['Lane'] == selected_row.Lane)]
+
+if filtered.empty:
+    st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
+else:
+    chart = alt.Chart(filtered).mark_arc().encode(
+        theta=alt.Theta(field="Median_%", type="quantitative"),
+        color=alt.Color(field="Library", type="nominal"),
+        tooltip=['Library', 'Median_%']
+    ).properties(
+        title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
 
     # Estrai Pool e Lane
     try:
