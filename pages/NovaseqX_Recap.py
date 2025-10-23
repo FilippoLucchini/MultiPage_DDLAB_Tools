@@ -35,9 +35,9 @@ def safe_median(series):
     return float(np.nanmedian(vals)) if not vals.empty else np.nan
 
 lib_type_col_default = 'Library_Kit' if 'Library_Kit' in orig_columns else orig_columns[0]
-allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit']]
 if not allowed_library_cols:
-    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit' è presente nel file.")
     st.stop()
 
 library_col = st.selectbox("Colonna che contiene il tipo di libreria", allowed_library_cols)
@@ -67,9 +67,6 @@ else:
         entry = {
             "Pool": pool,
             "Lane": lane,
-            "n_samples": len(grp),
-            "RT/Tape_Ratio(median)": safe_median(grp[col_rt_tape]) if col_rt_tape else np.nan,
-            "RT/Qubit_Ratio(median)": safe_median(grp[col_rt_qubit]) if col_rt_qubit else np.nan,
             "Conc_caricamento_1x (pM) (median)": safe_median(grp[col_conc_1x]) if col_conc_1x else np.nan,
             "%_Library_Lane (median)": safe_median(grp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan
         }
@@ -87,9 +84,9 @@ else:
         if col_frag_prod and col_frag_assigned:
             produced = pd.to_numeric(grp[col_frag_prod], errors='coerce').fillna(0).sum()
             assigned = pd.to_numeric(grp[col_frag_assigned], errors='coerce').fillna(0).sum()
-            entry['Fragments_Produced_vs_Assigned_percent'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
+            entry['% Production'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
         else:
-            entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
+            entry['% Production'] = np.nan
 
         groups.append(entry)
 
