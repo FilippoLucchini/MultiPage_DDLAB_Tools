@@ -23,9 +23,9 @@ if df.empty:
 orig_columns = list(df.columns)
 
 # --- Selezione colonna libreria + ordinamento ---
-allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit']]
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
 if not allowed_library_cols:
-    st.error("Nessuna delle colonne 'Type', 'Library_Kit' è presente nel file.")
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
     st.stop()
 
 col_filt, col_sort = st.columns([1, 1])
@@ -68,11 +68,14 @@ for (pool, lane), grp in by:
             "Pool": pool,
             "Lane": lane,
             "Library_Type": libtype,
+            "n_samples": len(subgrp),
             "%_Library_Lane (median)": safe_median(subgrp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan,
+            "RT/Tape_Ratio(median)": safe_median(subgrp[col_rt_tape]) if col_rt_tape else np.nan,
+            "RT/Qubit_Ratio(median)": safe_median(subgrp[col_rt_qubit]) if col_rt_qubit else np.nan,
             "Conc_caricamento_1x (pM) (median)": safe_median(subgrp[col_conc_1x]) if col_conc_1x else np.nan
         }
 
-        # Calcola altri tipi di libreria nella stessa Lane
+        # Altri tipi nella stessa Lane
         other_libs = grp[grp[library_col] != libtype]
         if not other_libs.empty and col_pct_lib_lane:
             lib_summaries = []
@@ -86,12 +89,11 @@ for (pool, lane), grp in by:
         if col_frag_prod and col_frag_assigned:
             produced = pd.to_numeric(subgrp[col_frag_prod], errors='coerce').fillna(0).sum()
             assigned = pd.to_numeric(subgrp[col_frag_assigned], errors='coerce').fillna(0).sum()
-            entry['%_Produced'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
+            entry['Fragments_Produced_vs_Assigned_percent'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
         else:
-            entry['%_Produced'] = np.nan
+            entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
 
         groups.append(entry)
-
 
 result_df = pd.DataFrame(groups)
 
@@ -101,20 +103,22 @@ if aggiorna:
     result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
 
     st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
-    st.markdown("""
-    <style>
-        .compact-table td, .compact-table th {
-            padding: 4px 8px;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-        .compact-table {
-            overflow-x: auto;
-        }
-    </style>
-""", unsafe_allow_html=True)
 
-st.markdown(result_df_filtered.to_html(classes='compact-table', index=False), unsafe_allow_html=True)
+    # Tabella compatta con larghezza adattiva
+    st.markdown("""
+        <style>
+            .compact-table td, .compact-table th {
+                padding: 4px 8px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            .compact-table {
+                overflow-x: auto;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown(result_df_filtered.to_html(classes='compact-table', index=False), unsafe_allow_html=True)
 
     st.download_button(
         "Scarica le statistiche filtrate (CSV)",
@@ -146,7 +150,7 @@ st.markdown(result_df_filtered.to_html(classes='compact-table', index=False), un
             chart = alt.Chart(filtered).mark_arc().encode(
                 theta=alt.Theta(field="%_Library_Lane (median)", type="quantitative"),
                 color=alt.Color(field="Library_Type", type="nominal"),
-                tooltip=['Library_Type', '%_Library_Lane (median)']
+                tooltip=['Library_Type', '%_Library_Lane (median)', 'Altri tipi nella stessa Lane (%_Library_Lane)']
             ).properties(
                 title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
             )
