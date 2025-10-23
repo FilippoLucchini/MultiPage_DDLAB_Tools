@@ -106,9 +106,35 @@ else:
         groups.append(entry)
 
     result_df = pd.DataFrame(groups).sort_values(by=["Pool", "Lane"])
-    st.markdown("### Statistiche per pool & lane (mediane e riassunti)")
-    st.dataframe(result_df)
-    st.download_button("Scarica le statistiche (CSV)", data=result_df.to_csv(index=False).encode('utf-8'), file_name='library_stats.csv')
+
+    # --- Filtro e visualizzazione tabella filtrata ---
+if aggiorna:
+    result_df_filtered = result_df[result_df["Library_Type"] == chosen_library]
+    result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
+
+    st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
+
+    # Tabella compatta con larghezza adattiva
+    st.markdown("""
+        <style>
+            .compact-table td, .compact-table th {
+                padding: 4px 8px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            .compact-table {
+                overflow-x: auto;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown(result_df_filtered.to_html(classes='compact-table', index=False), unsafe_allow_html=True)
+
+    st.download_button(
+        "Scarica le statistiche filtrate (CSV)",
+        data=result_df_filtered.to_csv(index=False).encode('utf-8'),
+        file_name='library_stats_filtrate.csv'
+    )
 
 # Grafico Altair
 
