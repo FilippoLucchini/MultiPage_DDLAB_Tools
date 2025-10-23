@@ -68,18 +68,33 @@ for (pool, lane), grp in by:
             "Pool": pool,
             "Lane": lane,
             "Library_Type": libtype,
-            "%_Library_Lane": safe_median(subgrp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan,
-            "Conc_caricamento_1x (pM)": safe_median(subgrp[col_conc_1x]) if col_conc_1x else np.nan
+            "n_samples": len(subgrp),
+            "%_Library_Lane (median)": safe_median(subgrp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan,
+            "RT/Tape_Ratio(median)": safe_median(subgrp[col_rt_tape]) if col_rt_tape else np.nan,
+            "RT/Qubit_Ratio(median)": safe_median(subgrp[col_rt_qubit]) if col_rt_qubit else np.nan,
+            "Conc_caricamento_1x (pM) (median)": safe_median(subgrp[col_conc_1x]) if col_conc_1x else np.nan
         }
+
+        # Calcola altri tipi di libreria nella stessa Lane
+        other_libs = grp[grp[library_col] != libtype]
+        if not other_libs.empty and col_pct_lib_lane:
+            lib_summaries = []
+            for other_type, other_grp in other_libs.groupby(library_col):
+                median_pct = safe_median(other_grp[col_pct_lib_lane])
+                lib_summaries.append(f"{other_type}: {median_pct:.2f}%")
+            entry["Altri tipi nella stessa Lane (%_Library_Lane)"] = "; ".join(lib_summaries)
+        else:
+            entry["Altri tipi nella stessa Lane (%_Library_Lane)"] = ""
 
         if col_frag_prod and col_frag_assigned:
             produced = pd.to_numeric(subgrp[col_frag_prod], errors='coerce').fillna(0).sum()
             assigned = pd.to_numeric(subgrp[col_frag_assigned], errors='coerce').fillna(0).sum()
-            entry['%_Production'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
+            entry['Fragments_Produced_vs_Assigned_percent'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
         else:
-            entry['%_Production'] = np.nan
+            entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
 
         groups.append(entry)
+
 
 result_df = pd.DataFrame(groups)
 
