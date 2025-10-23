@@ -36,7 +36,7 @@ with col_filt:
     chosen_library = st.selectbox("Scegli il tipo di libreria da analizzare", library_values)
 
 with col_sort:
-    sort_options = ["Pool", "Lane", "Conc_caricamento_1x (pM) (median)"]
+    sort_options = ["Pool", "Lane", "Conc_caricamento_1x (pM)"]
     sort_by = st.selectbox("Ordina la tabella per", sort_options)
     sort_ascending = st.radio("Ordine", ["Crescente", "Decrescente"]) == "Crescente"
     aggiorna = st.button("🔄 Applica ordinamento")
