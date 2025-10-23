@@ -72,8 +72,13 @@ else:
             "%_Library_Lane (median)": safe_median(grp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan,
             "Fragments_Produced_vs_Assigned_percent": (
                 grp[col_frag_prod].replace({np.nan: 0}).sum() / grp[col_frag_assigned].replace({np.nan: 0}).sum() * 100.0
-                if col_frag_prod and col_frag_assigned and grp[col_frag_assigned].replace({np.nan: 0}).sum() > 0
-                else np.nan
+                if col_frag_prod and col_frag_assigned:
+                    produced = pd.to_numeric(grp[col_frag_prod], errors='coerce').fillna(0).sum()
+                    assigned = pd.to_numeric(grp[col_frag_assigned], errors='coerce').fillna(0).sum()
+                    entry['Fragments_Produced_vs_Assigned_percent'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
+                else:
+                    entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
+
             )
         }
 
