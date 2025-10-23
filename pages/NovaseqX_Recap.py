@@ -27,8 +27,6 @@ if df.empty:
     st.stop()
 
 orig_columns = list(df.columns)
-st.sidebar.header("Colonne trovate")
-st.sidebar.write(orig_columns)
 
 # --- SECTION 2: Library grouping & statistics ---
 st.header("2) Statistiche raggruppate per tipo di libreria, pool e lane")
