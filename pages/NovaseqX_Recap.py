@@ -23,9 +23,9 @@ if df.empty:
 orig_columns = list(df.columns)
 
 # --- Selezione colonna libreria + ordinamento ---
-allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit']]
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
 if not allowed_library_cols:
-    st.error("Nessuna delle colonne 'Type', 'Library_Kit'è presente nel file.")
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
     st.stop()
 
 col_filt, col_sort = st.columns([1, 1])
@@ -39,6 +39,7 @@ with col_sort:
     sort_options = ["Pool", "Lane", "Conc_caricamento_1x (pM) (median)"]
     sort_by = st.selectbox("Ordina la tabella per", sort_options)
     sort_ascending = st.radio("Ordine", ["Crescente", "Decrescente"]) == "Crescente"
+    aggiorna = st.button("🔄 Applica ordinamento")
 
 # --- Colonne statistiche ---
 def safe_median(series):
@@ -85,51 +86,52 @@ for (pool, lane), grp in by:
 
 result_df = pd.DataFrame(groups)
 
-# --- Filtro per tipo selezionato + ordinamento ---
-result_df_filtered = result_df[result_df["Library_Type"] == chosen_library]
-result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
+# --- Filtro e visualizzazione tabella filtrata ---
+if aggiorna:
+    result_df_filtered = result_df[result_df["Library_Type"] == chosen_library]
+    result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
 
-st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
-st.dataframe(result_df_filtered)
-st.download_button(
-    "Scarica le statistiche filtrate (CSV)",
-    data=result_df_filtered.to_csv(index=False).encode('utf-8'),
-    file_name='library_stats_filtrate.csv'
-)
-
-# --- Grafico a torta Altair ---
-st.header("3) Grafico a torta per Pool + Lane")
-
-col1, col2 = st.columns([1, 1])
-
-with col1:
-    lane_options = result_df_filtered[['Pool', 'Lane']].drop_duplicates()
-    selected_row = st.selectbox(
-        "Seleziona Pool + Lane",
-        lane_options.itertuples(index=False),
-        format_func=lambda x: f"{x.Pool} - Lane {x.Lane}"
+    st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
+    st.dataframe(result_df_filtered)
+    st.download_button(
+        "Scarica le statistiche filtrate (CSV)",
+        data=result_df_filtered.to_csv(index=False).encode('utf-8'),
+        file_name='library_stats_filtrate.csv'
     )
 
-    filtered = result_df_filtered[
-        (result_df_filtered['Pool'] == selected_row.Pool) &
-        (result_df_filtered['Lane'] == selected_row.Lane)
-    ]
+    # --- Grafico a torta Altair ---
+    st.header("3) Grafico a torta per Pool + Lane")
 
-    if filtered.empty:
-        st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
-    else:
-        chart = alt.Chart(filtered).mark_arc().encode(
-            theta=alt.Theta(field="%_Library_Lane (median)", type="quantitative"),
-            color=alt.Color(field="Library_Type", type="nominal"),
-            tooltip=['Library_Type', '%_Library_Lane (median)']
-        ).properties(
-            title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        lane_options = result_df_filtered[['Pool', 'Lane']].drop_duplicates()
+        selected_row = st.selectbox(
+            "Seleziona Pool + Lane",
+            lane_options.itertuples(index=False),
+            format_func=lambda x: f"{x.Pool} - Lane {x.Lane}"
         )
 
-        st.altair_chart(chart, use_container_width=True)
+        filtered = result_df_filtered[
+            (result_df_filtered['Pool'] == selected_row.Pool) &
+            (result_df_filtered['Lane'] == selected_row.Lane)
+        ]
 
-with col2:
-    st.empty()
+        if filtered.empty:
+            st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
+        else:
+            chart = alt.Chart(filtered).mark_arc().encode(
+                theta=alt.Theta(field="%_Library_Lane (median)", type="quantitative"),
+                color=alt.Color(field="Library_Type", type="nominal"),
+                tooltip=['Library_Type', '%_Library_Lane (median)']
+            ).properties(
+                title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
+            )
+
+            st.altair_chart(chart, use_container_width=True)
+
+    with col2:
+        st.empty()
 
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
