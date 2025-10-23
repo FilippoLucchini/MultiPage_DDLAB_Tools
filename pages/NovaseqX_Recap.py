@@ -75,10 +75,19 @@ for (pool, lane), grp in by:
 
         groups.append(entry)
 
+# Dopo aver costruito result_df
 result_df = pd.DataFrame(groups).sort_values(by=["Pool", "Lane", "Library_Type"])
-st.markdown("### Statistiche dettagliate per Pool + Lane + Tipo di libreria")
-st.dataframe(result_df)
-st.download_button("Scarica le statistiche dettagliate (CSV)", data=result_df.to_csv(index=False).encode('utf-8'), file_name='library_stats_dettagliate.csv')
+
+# 🔽 Applica il filtro in base alla selezione dell'utente
+result_df_filtered = result_df[result_df["Library_Type"] == chosen_library]
+
+st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
+st.dataframe(result_df_filtered)
+st.download_button(
+    "Scarica le statistiche filtrate (CSV)",
+    data=result_df_filtered.to_csv(index=False).encode('utf-8'),
+    file_name='library_stats_filtrate.csv'
+)
 
 # --- Grafico a torta Altair ---
 st.header("3) Grafico a torta per Pool + Lane")
