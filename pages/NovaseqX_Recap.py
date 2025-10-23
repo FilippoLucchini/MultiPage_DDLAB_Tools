@@ -14,10 +14,8 @@ def load_data(path):
 st.title("NovaseqX Riassunto Totale")
 
 default_path = "NovaSeqX_Sequenziamento_Riassunto_Totale.xlsx"
-if uploaded is not None:
-    df = pd.read_excel(uploaded)
-else:
-    df = load_data(default_path)
+
+df = pd.read_excel(uploaded)
 
 df.columns = df.columns.str.strip()
 
