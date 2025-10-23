@@ -101,20 +101,19 @@ if aggiorna:
         result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
 
     st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
-    st.markdown("""
-        <style>
-            .compact-table td, .compact-table th {
-                padding: 4px 8px;
-                font-size: 13px;
-                white-space: nowrap;
-            }
-            .compact-table {
-                overflow-x: auto;
-            }
-        </style>
-    """, unsafe_allow_html=True)
 
-    st.markdown(result_df_filtered.to_html(classes='compact-table', index=False), unsafe_allow_html=True)
+    for _, row in result_df_filtered.iterrows():
+        with st.expander(f"📦 Pool {row['Pool']} — Lane {row['Lane']}"):
+            st.write({
+                "Tipo Libreria": row['Library_Type'],
+                "Campioni": row['n_samples'],
+                "%_Library_Lane (median)": row['%_Library_Lane (median)'],
+                "RT/Tape_Ratio(median)": row['RT/Tape_Ratio(median)'],
+                "RT/Qubit_Ratio(median)": row['RT/Qubit_Ratio(median)'],
+                "Conc_caricamento_1x (pM) (median)": row['Conc_caricamento_1x (pM) (median)'],
+                "Altri tipi nella stessa Lane": row['Altri tipi nella stessa Lane (%_Library_Lane)'],
+                "Fragments Produced vs Assigned (%)": row['Fragments_Produced_vs_Assigned_percent']
+            })
 
     st.download_button(
         "Scarica le statistiche filtrate (CSV)",
