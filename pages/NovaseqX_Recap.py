@@ -36,8 +36,8 @@ def safe_median(series):
     vals = pd.to_numeric(series, errors='coerce').dropna()
     return float(np.nanmedian(vals)) if not vals.empty else np.nan
 
-lib_type_col_default = 'Type' if 'Type' in orig_columns else orig_columns[0]
-allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library Kit', 'Capture Kit', 'Pool']]
+lib_type_col_default = 'Library_Kit' if 'Library_Kit' in orig_columns else orig_columns[0]
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
 if not allowed_library_cols:
     st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
     st.stop()
