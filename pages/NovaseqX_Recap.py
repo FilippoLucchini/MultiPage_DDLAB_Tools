@@ -68,8 +68,6 @@ else:
             "Pool": pool,
             "Lane": lane,
             "n_samples": len(grp),
-            "RT/Tape_Ratio(median)": safe_median(grp[col_rt_tape]) if col_rt_tape else np.nan,
-            "RT/Qubit_Ratio(median)": safe_median(grp[col_rt_qubit]) if col_rt_qubit else np.nan,
             "Conc_caricamento_1x (pM) (median)": safe_median(grp[col_conc_1x]) if col_conc_1x else np.nan,
             "%_Library_Lane (median)": safe_median(grp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan
         }
