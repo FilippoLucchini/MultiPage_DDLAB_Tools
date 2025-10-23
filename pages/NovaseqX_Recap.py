@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import altair as alt
 
 st.set_page_config(layout="wide", page_title="NovaSeq - Filter & Library Stats")
 
@@ -95,6 +96,39 @@ else:
     st.markdown("### Statistiche per pool & lane (mediane e riassunti)")
     st.dataframe(result_df)
     st.download_button("Scarica le statistiche (CSV)", data=result_df.to_csv(index=False).encode('utf-8'), file_name='library_stats.csv')
+
+# Grafico Altair
+# Esplodi la colonna 'Altri tipi di libreria (mediana %_Library_Lane)' in righe separate
+exploded = []
+for _, row in result_df.iterrows():
+    pool = row['Pool']
+    lane = row['Lane']
+    summary = row['Altri tipi di libreria (mediana %_Library_Lane)']
+    if summary:
+        for part in summary.split(';'):
+            if ':' in part:
+                libtype, pct = part.split(':')
+                exploded.append({
+                    'Pool': pool,
+                    'Lane': lane,
+                    'Library': libtype.strip(),
+                    'Median_%': float(pct.strip().replace('%',''))
+                })
+
+df_exploded = pd.DataFrame(exploded)
+
+# Crea il grafico a barre impilate
+chart = alt.Chart(df_exploded).mark_bar().encode(
+    x=alt.X('Pool:N', title='Pool'),
+    y=alt.Y('Median_%:Q', title='Mediana % Library Lane'),
+    color=alt.Color('Library:N', title='Tipo di libreria'),
+    column=alt.Column('Lane:N', title='Lane'),
+    tooltip=['Pool', 'Lane', 'Library', 'Median_%']
+).properties(
+    title='Distribuzione altri tipi di libreria per Pool e Lane'
+)
+
+st.altair_chart(chart, use_container_width=True)
 
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
