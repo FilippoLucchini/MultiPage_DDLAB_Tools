@@ -161,7 +161,14 @@ else:
             title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
         )
 
-        st.altair_chart(chart, use_container_width=True)
+        col1, col2 = st.columns([1, 1])  # Due colonne di larghezza uguale
+
+with col1:
+    st.altair_chart(chart, use_container_width=True)
+
+with col2:
+    st.empty()  # Spazio vuoto o contenuto aggiuntivo
+
 
 
 
