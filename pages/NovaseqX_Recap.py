@@ -126,22 +126,25 @@ for _, row in result_df.iterrows():
 
 df_exploded = pd.DataFrame(exploded)
 
-# Seleziona la Lane da visualizzare
-lane_selected = st.selectbox("Seleziona una Lane da visualizzare", sorted(df_exploded['Lane'].unique()))
-filtered = df_exploded[df_exploded['Lane'] == lane_selected]
+# Selezione Pool+Lane
+lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
+lane_selected = st.selectbox("Seleziona Pool + Lane", lane_options.apply(lambda x: f"{x['Pool']} - Lane {x['Lane']}", axis=1))
 
-# Grafico Altair compatto
-chart = alt.Chart(filtered).mark_bar().encode(
-    x=alt.X('Library:N', title='Tipo di libreria'),
-    y=alt.Y('Median_%:Q', title='Mediana %'),
-    color='Library:N',
-    column=alt.Column('Pool:N', title='Pool'),
-    tooltip=['Pool', 'Lane', 'Library', 'Median_%']
+# Filtra i dati
+selected_pool, selected_lane = lane_selected.split(' - Lane ')
+filtered = df_exploded[(df_exploded['Pool'] == selected_pool) & (df_exploded['Lane'] == selected_lane)]
+
+# Grafico a torta
+chart = alt.Chart(filtered).mark_arc().encode(
+    theta=alt.Theta(field="Median_%", type="quantitative"),
+    color=alt.Color(field="Library", type="nominal"),
+    tooltip=['Library', 'Median_%']
 ).properties(
-    title=f'Distribuzione % per Lane {lane_selected}'
+    title=f'Distribuzione % tipi di libreria — Pool {selected_pool}, Lane {selected_lane}'
 )
 
 st.altair_chart(chart, use_container_width=True)
+
 
 
 st.markdown("---")
