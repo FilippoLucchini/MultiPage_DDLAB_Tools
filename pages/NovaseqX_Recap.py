@@ -124,6 +124,6 @@ if aggiorna:
         data=result_df_filtered.to_csv(index=False).encode('utf-8'),
         file_name='library_stats_filtrate.csv'
     )
-    
+
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
