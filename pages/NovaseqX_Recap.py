@@ -101,7 +101,21 @@ if aggiorna:
     result_df_filtered = result_df_filtered.sort_values(by=sort_by, ascending=sort_ascending)
 
     st.markdown("### Statistiche dettagliate per Pool + Lane per il tipo selezionato")
-    st.dataframe(result_df_filtered)
+    st.markdown("""
+    <style>
+        .compact-table td, .compact-table th {
+            padding: 4px 8px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .compact-table {
+            overflow-x: auto;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown(result_df_filtered.to_html(classes='compact-table', index=False), unsafe_allow_html=True)
+
     st.download_button(
         "Scarica le statistiche filtrate (CSV)",
         data=result_df_filtered.to_csv(index=False).encode('utf-8'),
