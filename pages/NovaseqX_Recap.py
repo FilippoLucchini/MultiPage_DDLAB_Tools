@@ -48,10 +48,6 @@ if first_col is not None and first_col in df.columns:
 else:
     first_selected = []
     st.info("Seleziona una colonna per iniziare il filtro.")
-    
-# values available for first col
-first_values = sorted(df[first_col].dropna().unique().tolist())
-first_selected = st.multiselect(f"Valori per '{first_col}' (seleziona almeno uno)", first_values, key="first_sel")
 
 # reset dependent filters if first selection changed
 if 'first_selected_prev' not in st.session_state or st.session_state.first_selected_prev != tuple(first_selected):
