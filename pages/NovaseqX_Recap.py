@@ -75,9 +75,9 @@ for (pool, lane), grp in by:
         if col_frag_prod and col_frag_assigned:
             produced = pd.to_numeric(subgrp[col_frag_prod], errors='coerce').fillna(0).sum()
             assigned = pd.to_numeric(subgrp[col_frag_assigned], errors='coerce').fillna(0).sum()
-            entry['Fragments_Produced_vs_Assigned_percent'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
+            entry['%_Production'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
         else:
-            entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
+            entry['%_Production'] = np.nan
 
         groups.append(entry)
 
