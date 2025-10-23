@@ -134,44 +134,47 @@ df_exploded = pd.DataFrame(exploded)
 if df_exploded.empty:
     st.warning("Nessun dato disponibile per il grafico a torta.")
 else:
-    st.header("Libray % Plot")
+    st.header("3) Grafico a torta per Pool + Lane")
 
-    # Selezione diretta Pool+Lane
-    lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
-    selected_row = st.selectbox(
-        "Seleziona Pool + Lane",
-        lane_options.itertuples(index=False),
-        format_func=lambda x: f"{x.Pool} - Lane {x.Lane}"
-    )
+    col1, col2 = st.columns([1, 1])  # Layout a due colonne
 
-    # Filtra i dati
-    filtered = df_exploded[
-        (df_exploded['Pool'] == selected_row.Pool) &
-        (df_exploded['Lane'] == selected_row.Lane)
-    ]
-
-    if filtered.empty:
-        st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
-    else:
-        chart = alt.Chart(filtered).mark_arc().encode(
-            theta=alt.Theta(field="Median_%", type="quantitative"),
-            color=alt.Color(field="Library", type="nominal"),
-            tooltip=['Library', 'Median_%']
-        ).properties(
-            title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
+    with col1:
+        # Selezione diretta Pool+Lane
+        lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
+        selected_row = st.selectbox(
+            "Seleziona Pool + Lane",
+            lane_options.itertuples(index=False),
+            format_func=lambda x: f"{x.Pool} - Lane {x.Lane}"
         )
 
-        col1, col2 = st.columns([1, 1])  # Due colonne di larghezza uguale
+        # Filtra i dati
+        filtered = df_exploded[
+            (df_exploded['Pool'] == selected_row.Pool) &
+            (df_exploded['Lane'] == selected_row.Lane)
+        ]
 
-with col1:
-    st.altair_chart(chart, use_container_width=True)
+        if filtered.empty:
+            st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
+        else:
+            base = alt.Chart(filtered).encode(
+                theta=alt.Theta("Median_%:Q"),
+                color=alt.Color("Library:N", title="Tipo di libreria"),
+            )
 
-with col2:
-    st.empty()  # Spazio vuoto o contenuto aggiuntivo
+            pie = base.mark_arc()
+            text = base.mark_text(radius=110, size=13).encode(
+                text=alt.Text("Median_%:Q", format=".1f")
+            )
 
+            chart = pie + text
+            chart = chart.properties(
+                title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
+            )
 
+            st.altair_chart(chart, use_container_width=True)
 
-
+    with col2:
+        st.empty()  # Spazio libero o contenuto aggiuntivo
 
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
