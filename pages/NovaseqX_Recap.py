@@ -98,11 +98,22 @@ else:
     st.download_button("Scarica le statistiche (CSV)", data=result_df.to_csv(index=False).encode('utf-8'), file_name='library_stats.csv')
 
 # Grafico Altair
-# Esplodi la colonna 'Altri tipi di libreria (mediana %_Library_Lane)' in righe separate
+
+# Esplodi le librerie alternative
 exploded = []
 for _, row in result_df.iterrows():
     pool = row['Pool']
     lane = row['Lane']
+    selected_pct = row['%_Library_Lane (median)']
+    selected_type = chosen_library
+    # Aggiungi la libreria selezionata
+    exploded.append({
+        'Pool': pool,
+        'Lane': lane,
+        'Library': selected_type,
+        'Median_%': selected_pct
+    })
+    # Aggiungi le altre librerie
     summary = row['Altri tipi di libreria (mediana %_Library_Lane)']
     if summary:
         for part in summary.split(';'):
@@ -117,7 +128,7 @@ for _, row in result_df.iterrows():
 
 df_exploded = pd.DataFrame(exploded)
 
-# Crea il grafico a barre impilate
+# Grafico a barre impilate
 chart = alt.Chart(df_exploded).mark_bar().encode(
     x=alt.X('Pool:N', title='Pool'),
     y=alt.Y('Median_%:Q', title='Mediana % Library Lane'),
@@ -125,7 +136,7 @@ chart = alt.Chart(df_exploded).mark_bar().encode(
     column=alt.Column('Lane:N', title='Lane'),
     tooltip=['Pool', 'Lane', 'Library', 'Median_%']
 ).properties(
-    title='Distribuzione altri tipi di libreria per Pool e Lane'
+    title='Distribuzione di tutti i tipi di libreria per Pool e Lane'
 )
 
 st.altair_chart(chart, use_container_width=True)
