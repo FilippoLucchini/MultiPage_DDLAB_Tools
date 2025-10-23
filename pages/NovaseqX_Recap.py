@@ -34,7 +34,15 @@ if 'filters' not in st.session_state:
 cols = orig_columns
 
 # Select first filter (mandatory)
+# Select first filter (mandatory)
 first_col = st.selectbox("Prima colonna di filtro (obbligatoria)", cols, key="first_col")
+
+if first_col:
+    first_values = sorted(df[first_col].dropna().unique().tolist())
+    first_selected = st.multiselect(f"Valori per '{first_col}' (seleziona almeno uno)", first_values, key="first_sel")
+else:
+    st.warning("Seleziona una colonna per iniziare il filtro.")
+    first_selected = []
 # values available for first col
 first_values = sorted(df[first_col].dropna().unique().tolist())
 first_selected = st.multiselect(f"Valori per '{first_col}' (seleziona almeno uno)", first_values, key="first_sel")
