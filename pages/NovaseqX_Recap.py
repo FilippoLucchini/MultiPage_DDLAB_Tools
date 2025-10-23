@@ -19,6 +19,8 @@ if uploaded is not None:
 else:
     df = load_data(default_path)
 
+df.columns = df.columns.str.strip()
+
 # clean column names (keep originals but also provide safe lookup)
 orig_columns = list(df.columns)
 st.sidebar.header("Colonne trovate")
@@ -33,16 +35,20 @@ if 'filters' not in st.session_state:
 
 cols = orig_columns
 
-# Select first filter (mandatory)
-# Select first filter (mandatory)
 first_col = st.selectbox("Prima colonna di filtro (obbligatoria)", cols, key="first_col")
 
-if first_col:
+# Mostra i valori solo se è stata selezionata una colonna valida
+if first_col is not None and first_col in df.columns:
     first_values = sorted(df[first_col].dropna().unique().tolist())
-    first_selected = st.multiselect(f"Valori per '{first_col}' (seleziona almeno uno)", first_values, key="first_sel")
+    first_selected = st.multiselect(
+        f"Valori per '{first_col}' (seleziona almeno uno)",
+        first_values,
+        key="first_sel"
+    )
 else:
-    st.warning("Seleziona una colonna per iniziare il filtro.")
     first_selected = []
+    st.info("Seleziona una colonna per iniziare il filtro.")
+    
 # values available for first col
 first_values = sorted(df[first_col].dropna().unique().tolist())
 first_selected = st.multiselect(f"Valori per '{first_col}' (seleziona almeno uno)", first_values, key="first_sel")
