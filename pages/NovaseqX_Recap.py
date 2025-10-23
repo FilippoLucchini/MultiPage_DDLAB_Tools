@@ -68,10 +68,7 @@ for (pool, lane), grp in by:
             "Pool": pool,
             "Lane": lane,
             "Library_Type": libtype,
-            "n_samples": len(subgrp),
             "%_Library_Lane (median)": safe_median(subgrp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan,
-            "RT/Tape_Ratio(median)": safe_median(subgrp[col_rt_tape]) if col_rt_tape else np.nan,
-            "RT/Qubit_Ratio(median)": safe_median(subgrp[col_rt_qubit]) if col_rt_qubit else np.nan,
             "Conc_caricamento_1x (pM) (median)": safe_median(subgrp[col_conc_1x]) if col_conc_1x else np.nan
         }
 
@@ -89,9 +86,9 @@ for (pool, lane), grp in by:
         if col_frag_prod and col_frag_assigned:
             produced = pd.to_numeric(subgrp[col_frag_prod], errors='coerce').fillna(0).sum()
             assigned = pd.to_numeric(subgrp[col_frag_assigned], errors='coerce').fillna(0).sum()
-            entry['Fragments_Produced_vs_Assigned_percent'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
+            entry['%_Produced'] = (produced / assigned * 100.0) if assigned > 0 else np.nan
         else:
-            entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
+            entry['%_Produced'] = np.nan
 
         groups.append(entry)
 
