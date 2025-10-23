@@ -1,0 +1,199 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+st.set_page_config(layout="wide", page_title="NovaSeq - Filter & Library Stats")
+
+@st.cache_data
+def load_data(path):
+    return pd.read_excel(path)
+
+# --- Load data ---
+st.title("NovaSeq: filtro righe e statistiche per tipo di libreria")
+
+uploaded = st.file_uploader("Carica il file Excel (predefinito incluso)", type=["xlsx", "xls"])
+default_path = "NovaSeqX_Sequenziamento_Riassunto_Totale.xlsx"
+if uploaded is not None:
+    df = pd.read_excel(uploaded)
+else:
+    df = load_data(default_path)
+
+# clean column names (keep originals but also provide safe lookup)
+orig_columns = list(df.columns)
+st.sidebar.header("Colonne trovate")
+st.sidebar.write(orig_columns)
+
+# --- SECTION 1: Filtering ---
+st.header("1) Filtra i dati")
+st.markdown("Scegli la colonna del primo filtro (obbligatorio). Poi puoi aggiungere altri filtri che dipendono dal filtro precedente.")
+
+if 'filters' not in st.session_state:
+    st.session_state.filters = []  # list of dicts: {col: ..., vals: [...]}
+
+cols = orig_columns
+
+# Select first filter (mandatory)
+first_col = st.selectbox("Prima colonna di filtro (obbligatoria)", cols, key="first_col")
+# values available for first col
+first_values = sorted(df[first_col].dropna().unique().tolist())
+first_selected = st.multiselect(f"Valori per '{first_col}' (seleziona almeno uno)", first_values, key="first_sel")
+
+# reset dependent filters if first selection changed
+if 'first_selected_prev' not in st.session_state or st.session_state.first_selected_prev != tuple(first_selected):
+    st.session_state.filters = []
+    st.session_state.first_selected_prev = tuple(first_selected)
+
+st.write("\n")
+# Buttons to add/remove dependent filters
+cols_available = [c for c in cols if c != first_col]
+add_col_btn = st.button("Aggiungi filtro dipendente")
+if add_col_btn:
+    # append a new empty filter
+    st.session_state.filters.append({'col': None, 'vals': []})
+
+# Render dependent filters
+for i, f in enumerate(st.session_state.filters):
+    with st.expander(f"Filtro aggiuntivo #{i+1}", expanded=True):
+        # pick column
+        col_choice = st.selectbox(f"Colonna (filtro #{i+1})", options=[None] + cols_available, key=f"col_{i}")
+        st.session_state.filters[i]['col'] = col_choice
+        # compute values based on current selection chain (first filter + previous dependent filters up to i)
+        # Start from df filtered by first filter
+        df_tmp = df.copy()
+        if first_selected:
+            df_tmp = df_tmp[df_tmp[first_col].isin(first_selected)]
+        # apply previous dependent filters
+        for j in range(i):
+            colj = st.session_state.filters[j].get('col')
+            valsj = st.session_state.filters[j].get('vals', [])
+            if colj and valsj:
+                df_tmp = df_tmp[df_tmp[colj].isin(valsj)]
+        # available values for current col
+        if col_choice:
+            available_vals = sorted(df_tmp[col_choice].dropna().unique().tolist())
+            vals_selected = st.multiselect(f"Valori per '{col_choice}'", available_vals, key=f"vals_{i}")
+            st.session_state.filters[i]['vals'] = vals_selected
+        # remove filter button
+        if st.button("Rimuovi questo filtro", key=f"rem_{i}"):
+            st.session_state.filters.pop(i)
+            st.rerun()
+
+# Apply all filters and show resulting rows
+if not first_selected:
+    st.warning("Seleziona almeno un valore per il primo filtro per vedere i risultati.")
+else:
+    df_filtered = df[df[first_col].isin(first_selected)].copy()
+    for f in st.session_state.filters:
+        col = f.get('col')
+        vals = f.get('vals', [])
+        if col and vals:
+            df_filtered = df_filtered[df_filtered[col].isin(vals)]
+
+    st.markdown(f"### Risultato: {len(df_filtered)} righe corrispondenti ai filtri")
+    st.dataframe(df_filtered)
+    csv = df_filtered.to_csv(index=False).encode('utf-8')
+    st.download_button("Scarica CSV dei risultati", data=csv, file_name="filtered_results.csv")
+
+# --- SECTION 2: Library grouping & statistics ---
+st.header("2) Statistiche raggruppate per tipo di libreria, pool e lane")
+st.markdown("Seleziona la colonna che identifica il tipo di libreria e il tipo specifico (es. 'Type' o 'Library_Kit'). Il codice raggrupperà per Pool e Lane.")
+
+# sensible defaults based on detected columns
+lib_type_col_default = 'Type' if 'Type' in orig_columns else orig_columns[0]
+library_col = st.selectbox("Colonna che contiene il tipo di libreria", orig_columns, index=orig_columns.index(lib_type_col_default))
+library_values = sorted(df[library_col].dropna().unique().tolist())
+chosen_library = st.selectbox("Scegli il tipo di libreria da analizzare", library_values)
+
+# columns used for calculations (if missing, inform user)
+col_rt_tape = 'RT/Tape_Ratio' if 'RT/Tape_Ratio' in orig_columns else None
+col_rt_qubit = 'RT/Qubit_Ratio' if 'RT/Qubit_Ratio' in orig_columns else None
+col_conc_1x = 'Conc_caricamento_1x (pM)' if 'Conc_caricamento_1x (pM)' in orig_columns else None
+col_pct_lib_lane = '%_Library_Lane' if '%_Library_Lane' in orig_columns else None
+col_frag_prod = '#fragments Produced sample' if '#fragments Produced sample' in orig_columns else None
+col_frag_assigned = '#fragments Assigned_sample ' if '#fragments Assigned_sample ' in orig_columns else None
+col_pool = 'Pool'
+col_lane = 'Lane'
+
+missing = [name for name, col in [('RT/Tape', col_rt_tape), ('RT/Qubit', col_rt_qubit), ('Conc 1x', col_conc_1x), ('% Library Lane', col_pct_lib_lane), ('#fragments Produced sample', col_frag_prod), ('#fragments Assigned_sample', col_frag_assigned)] if col is None]
+if missing:
+    st.warning(f"Attenzione: mancano alcune colonne necessarie per tutte le statistiche: {missing}. Le statistiche correlate non saranno calcolate.")
+
+# Filter to chosen library type
+df_lib = df[df[library_col] == chosen_library].copy()
+if df_lib.empty:
+    st.info("Nessun campione trovato per il tipo di libreria selezionato.")
+else:
+    # group by Pool and Lane
+    group_cols = [col_pool, col_lane]
+    # Ensure the columns exist
+    for c in group_cols:
+        if c not in df.columns:
+            st.error(f"Colonna obbligatoria mancante nel file: {c}")
+
+    groups = []
+    by = df_lib.groupby(group_cols)
+    for (pool, lane), grp in by:
+        entry = {"Pool": pool, "Lane": lane, "n_samples": len(grp)}
+        # medians of ratios
+        if col_rt_tape:
+            entry['RT/Tape_Ratio(median)'] = float(np.nanmedian(grp[col_rt_tape].dropna())) if grp[col_rt_tape].dropna().size>0 else np.nan
+        else:
+            entry['RT/Tape_Ratio(median)'] = np.nan
+        if col_rt_qubit:
+            entry['RT/Qubit_Ratio(median)'] = float(np.nanmedian(grp[col_rt_qubit].dropna())) if grp[col_rt_qubit].dropna().size>0 else np.nan
+        else:
+            entry['RT/Qubit_Ratio(median)'] = np.nan
+        if col_conc_1x:
+            entry['Conc_caricamento_1x (pM) (median)'] = float(np.nanmedian(grp[col_conc_1x].dropna())) if grp[col_conc_1x].dropna().size>0 else np.nan
+        else:
+            entry['Conc_caricamento_1x (pM) (median)'] = np.nan
+        if col_pct_lib_lane:
+            entry['%_Library_Lane (median)'] = float(np.nanmedian(grp[col_pct_lib_lane].dropna())) if grp[col_pct_lib_lane].dropna().size>0 else np.nan
+        else:
+            entry['%_Library_Lane (median)'] = np.nan
+
+        # Other library types in same pool+lane and their median %_Library_Lane
+        others = df[(df[col_pool]==pool) & (df[col_lane]==lane) & (df[library_col] != chosen_library)]
+        other_summary = {}
+        if not others.empty and col_pct_lib_lane:
+            for libtype, sec in others.groupby(library_col):
+                median_pct = float(np.nanmedian(sec[col_pct_lib_lane].dropna())) if sec[col_pct_lib_lane].dropna().size>0 else np.nan
+                other_summary[libtype] = median_pct
+        entry['Other_library_types_median_%_Library_Lane'] = other_summary
+
+        # percent fragments produced vs assigned for this library type in this pool+lane
+        if col_frag_prod and col_frag_assigned:
+            produced = grp[col_frag_prod].replace({np.nan:0}).sum()
+            assigned = grp[col_frag_assigned].replace({np.nan:0}).sum()
+            entry['Fragments_Produced_vs_Assigned_percent'] = (produced/assigned*100.0) if assigned>0 else np.nan
+        else:
+            entry['Fragments_Produced_vs_Assigned_percent'] = np.nan
+
+        groups.append(entry)
+
+    result_df = pd.DataFrame(groups)
+    st.markdown("### Statistiche per pool & lane (mediane e riassunti)")
+    st.dataframe(result_df)
+
+    # Show expanded view for other library types in each group
+    st.markdown("### Dettaglio: altri tipi di libreria trovati nelle stesse pool+lane")
+    expanded_rows = []
+    for _, r in result_df.iterrows():
+        pool = r['Pool']
+        lane = r['Lane']
+        others = df[(df[col_pool]==pool) & (df[col_lane]==lane) & (df[library_col] != chosen_library)]
+        if not others.empty and col_pct_lib_lane:
+            agg = others.groupby(library_col)[col_pct_lib_lane].median().reset_index().rename(columns={col_pct_lib_lane: 'median_%_Library_Lane'})
+            agg.insert(0, 'Pool', pool)
+            agg.insert(1, 'Lane', lane)
+            expanded_rows.append(agg)
+    if expanded_rows:
+        expanded_df = pd.concat(expanded_rows, ignore_index=True)
+        st.dataframe(expanded_df)
+
+    # allow download
+    st.download_button("Scarica le statistiche (CSV)", data=result_df.to_csv(index=False).encode('utf-8'), file_name='library_stats.csv')
+
+st.markdown("---")
+st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
