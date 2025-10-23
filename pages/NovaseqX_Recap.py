@@ -113,6 +113,10 @@ else:
 st.header("2) Statistiche raggruppate per tipo di libreria, pool e lane")
 st.markdown("Seleziona la colonna che identifica il tipo di libreria e il tipo specifico (es. 'Type' o 'Library_Kit'). Il codice raggrupperà per Pool e Lane.")
 
+def safe_median(series):
+    vals = pd.to_numeric(series, errors='coerce').dropna()
+    return float(np.nanmedian(vals)) if not vals.empty else np.nan
+
 # sensible defaults based on detected columns
 lib_type_col_default = 'Type' if 'Type' in orig_columns else orig_columns[0]
 library_col = st.selectbox("Colonna che contiene il tipo di libreria", orig_columns, index=orig_columns.index(lib_type_col_default))
@@ -150,29 +154,17 @@ else:
     for (pool, lane), grp in by:
         entry = {"Pool": pool, "Lane": lane, "n_samples": len(grp)}
         # medians of ratios
-        if col_rt_tape:
-            entry['RT/Tape_Ratio(median)'] = float(np.nanmedian(grp[col_rt_tape].dropna())) if grp[col_rt_tape].dropna().size>0 else np.nan
-        else:
-            entry['RT/Tape_Ratio(median)'] = np.nan
-        if col_rt_qubit:
-            entry['RT/Qubit_Ratio(median)'] = float(np.nanmedian(grp[col_rt_qubit].dropna())) if grp[col_rt_qubit].dropna().size>0 else np.nan
-        else:
-            entry['RT/Qubit_Ratio(median)'] = np.nan
-        if col_conc_1x:
-            entry['Conc_caricamento_1x (pM) (median)'] = float(np.nanmedian(grp[col_conc_1x].dropna())) if grp[col_conc_1x].dropna().size>0 else np.nan
-        else:
-            entry['Conc_caricamento_1x (pM) (median)'] = np.nan
-        if col_pct_lib_lane:
-            entry['%_Library_Lane (median)'] = float(np.nanmedian(grp[col_pct_lib_lane].dropna())) if grp[col_pct_lib_lane].dropna().size>0 else np.nan
-        else:
-            entry['%_Library_Lane (median)'] = np.nan
+        entry['RT/Tape_Ratio(median)'] = safe_median(grp[col_rt_tape]) if col_rt_tape else np.nan
+        entry['RT/Qubit_Ratio(median)'] = safe_median(grp[col_rt_qubit]) if col_rt_qubit else np.nan
+        entry['Conc_caricamento_1x (pM) (median)'] = safe_median(grp[col_conc_1x]) if col_conc_1x else np.nan
+        entry['%_Library_Lane (median)'] = safe_median(grp[col_pct_lib_lane]) if col_pct_lib_lane else np.nan
 
         # Other library types in same pool+lane and their median %_Library_Lane
         others = df[(df[col_pool]==pool) & (df[col_lane]==lane) & (df[library_col] != chosen_library)]
         other_summary = {}
         if not others.empty and col_pct_lib_lane:
             for libtype, sec in others.groupby(library_col):
-                median_pct = float(np.nanmedian(sec[col_pct_lib_lane].dropna())) if sec[col_pct_lib_lane].dropna().size>0 else np.nan
+                median_pct = safe_median(sec[col_pct_lib_lane])
                 other_summary[libtype] = median_pct
         entry['Other_library_types_median_%_Library_Lane'] = other_summary
 
