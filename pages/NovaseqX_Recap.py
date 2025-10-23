@@ -23,9 +23,9 @@ if df.empty:
 orig_columns = list(df.columns)
 
 # --- Selezione colonna libreria + ordinamento ---
-allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit', 'Capture_Kit', 'Pool']]
+allowed_library_cols = [c for c in orig_columns if c in ['Type', 'Library_Kit']]
 if not allowed_library_cols:
-    st.error("Nessuna delle colonne 'Type', 'Library_Kit', 'Capture_Kit', 'Pool' è presente nel file.")
+    st.error("Nessuna delle colonne 'Type', 'Library_Kit'è presente nel file.")
     st.stop()
 
 col_filt, col_sort = st.columns([1, 1])
