@@ -126,7 +126,7 @@ for _, row in result_df.iterrows():
                         'Median_%': float(pct.strip().replace('%',''))
                     })
                 except:
-                    continue  # ignora valori non convertibili
+                    continue
 
 df_exploded = pd.DataFrame(exploded)
 
@@ -139,7 +139,6 @@ else:
     col1, col2 = st.columns([1, 1])  # Layout a due colonne
 
     with col1:
-        # Selezione diretta Pool+Lane
         lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
         selected_row = st.selectbox(
             "Seleziona Pool + Lane",
@@ -147,7 +146,6 @@ else:
             format_func=lambda x: f"{x.Pool} - Lane {x.Lane}"
         )
 
-        # Filtra i dati
         filtered = df_exploded[
             (df_exploded['Pool'] == selected_row.Pool) &
             (df_exploded['Lane'] == selected_row.Lane)
@@ -156,25 +154,19 @@ else:
         if filtered.empty:
             st.warning("Nessun dato disponibile per questa combinazione Pool + Lane.")
         else:
-            base = alt.Chart(filtered).encode(
-                theta=alt.Theta("Median_%:Q"),
-                color=alt.Color("Library:N", title="Tipo di libreria"),
-            )
-
-            pie = base.mark_arc()
-            text = base.mark_text(radius=110, size=13).encode(
-                text=alt.Text("Median_%:Q", format=".1f")
-            )
-
-            chart = pie + text
-            chart = chart.properties(
+            chart = alt.Chart(filtered).mark_arc().encode(
+                theta=alt.Theta(field="Median_%", type="quantitative"),
+                color=alt.Color(field="Library", type="nominal"),
+                tooltip=['Library', 'Median_%']
+            ).properties(
                 title=f'Distribuzione % tipi di libreria — Pool {selected_row.Pool}, Lane {selected_row.Lane}'
             )
 
             st.altair_chart(chart, use_container_width=True)
 
     with col2:
-        st.empty()  # Spazio libero o contenuto aggiuntivo
+        st.empty()
+
 
 st.markdown("---")
 st.caption("Script generato automaticamente — adattalo se le intestazioni delle colonne nel tuo file differiscono da quelle usate qui.")
