@@ -11,9 +11,8 @@ def load_data(path):
     return pd.read_excel(path)
 
 # --- Load data ---
-st.title("NovaSeq: filtro righe e statistiche per tipo di libreria")
+st.title("NovaseqX Riassunto Totale")
 
-uploaded = st.file_uploader("Carica il file Excel (predefinito incluso)", type=["xlsx", "xls"])
 default_path = "NovaSeqX_Sequenziamento_Riassunto_Totale.xlsx"
 if uploaded is not None:
     df = pd.read_excel(uploaded)
@@ -29,7 +28,6 @@ if df.empty:
 orig_columns = list(df.columns)
 
 # --- SECTION 2: Library grouping & statistics ---
-st.header("2) Statistiche raggruppate per tipo di libreria, pool e lane")
 st.markdown("Seleziona la colonna che identifica il tipo di libreria e il tipo specifico (es. 'Type' o 'Library_Kit'). Il codice raggrupperà per Pool e Lane.")
 
 def safe_median(series):
@@ -136,7 +134,7 @@ df_exploded = pd.DataFrame(exploded)
 if df_exploded.empty:
     st.warning("Nessun dato disponibile per il grafico a torta.")
 else:
-    st.header("3) Grafico a torta per Pool + Lane")
+    st.header("Libray % Plot")
 
     # Selezione diretta Pool+Lane
     lane_options = df_exploded[['Pool', 'Lane']].drop_duplicates()
