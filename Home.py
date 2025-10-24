@@ -76,6 +76,23 @@ with db_col3:
         st.switch_page("pages/03_Plastics_Database.py")
     st.markdown('<div class="card"><h3>🧪 Plastics</h3><p>Manage lab plastics and inventory.</p></div>', unsafe_allow_html=True)
 
+db_col1, db_col2, db_col3 = st.columns(3) 
+
+with db_col1:
+    if st.button("🔎 Index Matching Tool", use_container_width=True):
+        st.switch_page("pages/04_Index_Matching.py")
+    st.markdown('<div class="card"><h3>🔎 Index Matching</h3><p>Check sequencing index overlaps.</p></div>', unsafe_allow_html=True)
+
+with db_col2:
+    if st.button("🧬 NovaseqX Runs Hystory", use_container_width=True):
+        st.switch_page("pages/06_NovaseqX_Recap.py")
+    st.markdown('<div class="card"><h3>🧬 NovaseqX Runs Hystory</h3><p>See runs with library types and production.</p></div>', unsafe_allow_html=True)
+
+with db_col3:
+    if st.button("🥣 Master Mix Calculator", use_container_width=True):
+        st.switch_page("pages/05_MasterMix Calculator.py")
+    st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
+
 st.markdown("---")
 
 # --- Analysis Tools Section ---
@@ -100,6 +117,7 @@ with tools_col3:
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
 
