@@ -80,7 +80,7 @@ db_col1, db_col2, db_col3 = st.columns(3)
 
 with db_col1:
     if st.button("🧬 NovaseqX Runs Hystory", use_container_width=True):
-        st.switch_page("pages/06_NovaseqX_Recap.p")
+        st.switch_page("pages/06_NovaseqX_Recap.py")
     st.markdown('<div class="card"><h3>🧬 NovaseqX Runs Hystory</h3><p>See runs with library types and production.</p></div>', unsafe_allow_html=True)
 
 with db_col2:
@@ -112,6 +112,7 @@ with tools_col2:
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
 
