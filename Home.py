@@ -106,12 +106,13 @@ with tools_col1:
         st.switch_page("pages/04_Index_Matching.py")
     st.markdown('<div class="card"><h3>🔎 Index Matching</h3><p>Check sequencing index overlaps.</p></div>', unsafe_allow_html=True)
 
-with tools_col3:
+with tools_col2:
     if st.button("🥣 Master Mix Calculator", use_container_width=True):
         st.switch_page("pages/05_MasterMix Calculator.py")
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
 
