@@ -82,7 +82,7 @@ st.markdown("---")
 st.header("🛠️ Tools")
 st.write("Choose a tool to run:")
 
-tools_col1, tools_col2 = st.columns(2)
+tools_col1, tools_col2, tools_col3 = st.columns(3) ì
 
 with tools_col1:
     if st.button("🔎 Index Matching Tool", use_container_width=True):
@@ -90,11 +90,17 @@ with tools_col1:
     st.markdown('<div class="card"><h3>🔎 Index Matching</h3><p>Check sequencing index overlaps.</p></div>', unsafe_allow_html=True)
 
 with tools_col2:
+    if st.button("🧬 NovaseqX Runs Hystory", use_container_width=True):
+        st.switch_page("pages/06_NovaseqX_Recap.py")
+    st.markdown('<div class="card"><h3>🧬 NovaseqX Runs Hystory</h3><p>See runs with library types and production.</p></div>', unsafe_allow_html=True)
+
+with tools_col3:
     if st.button("🥣 Master Mix Calculator", use_container_width=True):
         st.switch_page("pages/05_MasterMix Calculator.py")
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
 
