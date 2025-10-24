@@ -89,9 +89,9 @@ with db_col2:
     st.markdown('<div class="card"><h3>Future features to come</h3><p>Lets see what the future brings us!.</p></div>', unsafe_allow_html=True)
 
 with db_col3:
-    if st.button("More to Come", use_container_width=True):
+    if st.button("Additional Features", use_container_width=True):
         st.switch_page("pages")
-    st.markdown('<div class="card"><h3>Future features to come</h3><p>Lets see what the future brings us!.</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><h3>Future Release</h3><p>Updates.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -117,6 +117,7 @@ with tools_col3:
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
 
