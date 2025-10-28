@@ -75,87 +75,105 @@ with tab2:
 # --------------------------------------------------------------------
 
 with tab3:
-    st.subheader("MasterMix Calculator")
-    st.markdown("Choose the kit and calculate master mixes for your library prep.")
+    st.header("🥣 Master Mix Calculator")
+    st.caption("Easily calculate and scale reagent mixes for multiple reactions or library prep kits.")
 
-# Define kits with multiple reactions
+    # --- Example Kits ---
     REAGENT_KITS = {
         "Twist EF 1.0 Library Prep": {
             "Fragmentation, ER & AT": {"Water": 25, "10X Fragmentation Buffer": 5, "5X Fragmentation Enzyme": 10},
             "Ligation": {"Water": 15, "DNA Ligation Buffer": 20, "DNA Ligation Mix": 10}
         },
-        "Kit B": {
-            "Prep": {"Reagent X": 8, "Reagent Y": 3},
-            "Amplification": {"Reagent Z": 2, "Reagent W": 4}
+        "PCR Setup": {
+            "Reaction Mix": {"Water": 14, "10X Buffer": 2, "dNTPs": 1, "Taq Polymerase": 0.5, "Primer Mix": 2.5}
         }
     }
 
-# Handle back button early
-    if st.session_state.get("back_to_selection"):
+    # --- Navigation State ---
+    if "selected_kit" not in st.session_state:
         st.session_state.selected_kit = None
-        st.session_state.kit_data = None
-        st.session_state.back_to_selection = False
 
-# Kit selection view
-    if "selected_kit" not in st.session_state or st.session_state.selected_kit is None:
-        st.title("Select a Reagent Kit")
-        for kit_name in REAGENT_KITS.keys():
-            if st.button(kit_name):
+    # --- Kit Selection ---
+    if st.session_state.selected_kit is None:
+        st.subheader("Select a Reagent Kit")
+        st.markdown("Choose from preset kits or create a custom one.")
+
+        cols = st.columns(3)
+        for i, kit_name in enumerate(REAGENT_KITS.keys()):
+            with cols[i % 3]:
+                if st.button(f"⚗️ {kit_name}"):
+                    st.session_state.selected_kit = kit_name
+
+        st.divider()
+        with st.expander("➕ Create Custom Kit"):
+            kit_name = st.text_input("Kit Name")
+            n_reactions = st.number_input("Number of reactions", min_value=1, value=1, step=1)
+            custom_kit = {}
+            for i in range(int(n_reactions)):
+                rxn_name = st.text_input(f"Reaction {i+1} name", key=f"rxn_{i}")
+                n_reagents = st.number_input(f"Number of reagents in {rxn_name}", min_value=1, value=3, key=f"reag_{i}")
+                reagents = {}
+                for j in range(int(n_reagents)):
+                    col1, col2 = st.columns([2, 1])
+                    with col1:
+                        rname = st.text_input(f"Reagent {j+1} name ({rxn_name})", key=f"rname_{i}_{j}")
+                    with col2:
+                        ramt = st.number_input("µL per sample", value=1.0, key=f"ramt_{i}_{j}")
+                    if rname:
+                        reagents[rname] = ramt
+                if rxn_name:
+                    custom_kit[rxn_name] = reagents
+
+            if st.button("💾 Save Custom Kit") and kit_name:
+                REAGENT_KITS[kit_name] = custom_kit
                 st.session_state.selected_kit = kit_name
-                st.session_state.kit_data = REAGENT_KITS[kit_name]
+                st.success(f"✅ Custom kit '{kit_name}' added and selected!")
 
+    # --- Kit View ---
     else:
         kit_name = st.session_state.selected_kit
-        kit_data = st.session_state.kit_data
+        kit_data = REAGENT_KITS[kit_name]
 
-        st.title(f"Reagent Calculator for {kit_name}")
+        st.markdown(f"### 🧪 {kit_name}")
+        st.caption("Enter the number of samples and extra volume percentage.")
 
-    # Ask once for samples and excess
-        num_samples = st.number_input("Number of samples", min_value=1, step=1)
-        excess_pct = st.slider("Excess (%)", min_value=0, max_value=100, value=10)
+        col1, col2 = st.columns(2)
+        num_samples = col1.number_input("Number of samples", min_value=1, value=8)
+        excess_pct = col2.slider("Excess (%)", min_value=0, max_value=100, value=10)
         excess_factor = 1 + (excess_pct / 100)
 
-    # Calculate button
-        if st.button("Calculate Reagents"):
-            st.subheader("Calculated Reagent Amounts")
+        if st.button("🔢 Calculate Master Mix"):
+            st.divider()
+            st.subheader("📋 Calculated Reagent Amounts")
+
             results = []
+            for rxn_name, reagents in kit_data.items():
+                with st.expander(f"🧫 {rxn_name}", expanded=True):
+                    data = []
+                    for reagent, per_sample in reagents.items():
+                        total = per_sample * num_samples * excess_factor
+                        tip = "⚠️ Add water to bring to volume" if total < 2 else ""
+                        data.append({"Reagent": reagent, "Per Sample (µL)": per_sample, "Total (µL)": round(total, 2), "Note": tip})
+                        results.append({
+                            "Reaction": rxn_name,
+                            "Reagent": reagent,
+                            "Amount (µL)": round(total, 2)
+                        })
+                    st.table(pd.DataFrame(data))
 
-            reaction_names = list(kit_data.keys())
-            columns = st.columns(len(reaction_names))
-
-            for col, reaction_name in zip(columns, reaction_names):
-                reagents = kit_data[reaction_name]
-                reaction_results = []
-
-                for reagent, per_sample in reagents.items():
-                    total = per_sample * num_samples * excess_factor
-                    reaction_results.append({
-                        "Reagent": reagent,
-                        "Amount (ul)": round(total, 2)
-                    })
-                    results.append({
-                        "Reaction": reaction_name,
-                        "Reagent": reagent,
-                        "Amount (ul)": round(total, 2)
-                    })
-
-                with col:
-                    st.markdown(f"**{reaction_name}**")
-                    st.table(pd.DataFrame(reaction_results))
-
-        # Export CSV
+            # Summary CSV
             df = pd.DataFrame(results)
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button(
-                "Download All Reagents as CSV",
+                label="💾 Download All as CSV",
                 data=csv,
-                file_name=f"{kit_name}_reagents.csv",
+                file_name=f"{kit_name.replace(' ', '_')}_MasterMix_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.csv",
                 mime="text/csv"
             )
 
-    # Back button
+        st.divider()
         if st.button("🔙 Back to Kit Selection"):
-            st.session_state.back_to_selection = True
+            st.session_state.selected_kit = None
             st.rerun()
 
 # --------------------------------------------------------------------
