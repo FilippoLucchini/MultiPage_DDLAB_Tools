@@ -85,7 +85,7 @@ with db_col1:
 
 with db_col2:
     if st.button("More to Come", use_container_width=True):
-        st.switch_page("pages")
+        st.switch_page("pages/07_Calculators.py")
     st.markdown('<div class="card"><h3>Future features to come</h3><p>Lets see what the future brings us!.</p></div>', unsafe_allow_html=True)
 
 with db_col3:
@@ -112,6 +112,7 @@ with tools_col2:
     st.markdown('<div class="card"><h3>🥣 Master Mix</h3><p>Calculate reagents mixes.</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")  # horizontal divider
+
 
 
 
